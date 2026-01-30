@@ -209,7 +209,7 @@ export async function setBeatBoxSample(index: number, buffer: AudioBuffer) {
   const beatChannels = ensureBeatBox();
   const channel = beatChannels[index];
   if (!channel) return;
-  channel.player.buffer = buffer;
+  channel.player.buffer = new Tone.ToneAudioBuffer(buffer);
 }
 
 export async function triggerBeatBox(index: number, time?: Tone.Unit.Time, velocity = 0.9) {
