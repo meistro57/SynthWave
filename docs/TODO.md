@@ -1,4 +1,28 @@
-# SynthWave TODO (Phase 1 Kickoff)
+# SynthWave TODO
+
+## Testing Infrastructure
+- [x] Fix build: replace Google Fonts with system fonts for offline/CI compatibility
+- [x] Fix TypeScript error in SubSynth oscillator type
+- [x] Fix MasterMeter SSR issue (lazy init via useEffect)
+- [x] Install testing dependencies (Jest, Testing Library, ts-jest)
+- [x] Configure Jest for Next.js + TypeScript (jest.config.ts)
+- [x] Create Tone.js mock for test environment
+- [x] Write unit tests for audio constants
+- [x] Write unit tests for transport module
+- [x] Write unit tests for audio engine
+- [x] Write unit tests for audio routing
+- [x] Write unit tests for SubSynth instrument
+- [x] Write unit tests for transport store
+- [x] Write unit tests for sequencer store
+- [x] Write component tests for TempoDisplay
+- [x] Write component tests for AudioTest
+- [x] Write component tests for TransportControls
+- [x] Write component tests for MasterMeter
+- [x] Write component tests for SubSynth
+- [x] Write component tests for StepSequencer
+- [x] All 148 tests passing across 13 test suites
+
+## Phase 1 Kickoff (Complete)
 
 ## Immediate
 - [x] Confirm repo structure and package manager (npm)
