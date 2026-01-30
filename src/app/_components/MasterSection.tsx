@@ -62,7 +62,7 @@ export function MasterSection() {
         setWidth(Math.max(0, Math.min(1, diff / 60)));
       }
 
-      const fftValues = fft.getValue() as number[];
+      const fftValues = Array.from(fft.getValue());
       setSpectrum(fftValues.slice(0, 24));
       requestAnimationFrame(tick);
     };
