@@ -111,7 +111,6 @@ function ensureMasterChain() {
     masterWidthMeter = new Tone.Meter({
       normalRange: true,
       smoothing: 0.8,
-      channels: 2,
     });
     masterLimiter.connect(masterWidthMeter);
   }
