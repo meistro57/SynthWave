@@ -173,7 +173,7 @@ export function setPCMSynthPan(pan: number) {
 
 export async function addPCMSample(note: string, buffer: AudioBuffer | Tone.ToneAudioBuffer) {
   const sampler = await initPCMSynth();
-  sampler.add(note, buffer);
+  sampler.add(note as Tone.Unit.Frequency, buffer);
 }
 
 export async function triggerPCMSynth(
