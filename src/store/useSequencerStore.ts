@@ -46,6 +46,7 @@ export type SequencerState = {
   gate: SequencerGate;
   ratchet: SequencerRatchet;
   resolution: SequencerResolution;
+  rowTargets: SequencerTarget[];
   rowMutes: boolean[];
   rowSolos: boolean[];
   rowVolumes: number[];
@@ -72,6 +73,7 @@ export type SequencerState = {
   setRowPans: (pans: number[]) => void;
   setRowDelaySends: (sends: number[]) => void;
   setRowReverbSends: (sends: number[]) => void;
+  setRowTargets: (targets: SequencerTarget[]) => void;
   clear: () => void;
   randomize: (density?: number) => void;
   loadPattern: (pattern: SequencerPattern) => void;
@@ -86,6 +88,7 @@ export type SequencerState = {
 export type PatternSlot = "A" | "B" | "C" | "D";
 export type QuickPresetMode = "velocity" | "probability" | "gate" | "ratchet";
 export type QuickPresetLevel = "low" | "med" | "high";
+export type SequencerTarget = "subsynth" | "pcmsynth" | "fmsynth" | "bassline";
 
 function createGrid(rows: number, cols: number, fill = 0) {
   return Array.from({ length: rows }, () => Array.from({ length: cols }, () => fill));
@@ -121,6 +124,7 @@ export const useSequencerStore = create<SequencerState>((set, get) => ({
   gate: createGrid(SEQUENCER_NOTES.length, DEFAULT_STEPS, 1),
   ratchet: createGrid(SEQUENCER_NOTES.length, DEFAULT_STEPS, 1),
   resolution: "16n",
+  rowTargets: Array.from({ length: SEQUENCER_NOTES.length }, () => "subsynth" as SequencerTarget),
   rowMutes: Array.from({ length: SEQUENCER_NOTES.length }, () => false),
   rowSolos: Array.from({ length: SEQUENCER_NOTES.length }, () => false),
   rowVolumes: Array.from({ length: SEQUENCER_NOTES.length }, () => 1),
@@ -190,6 +194,7 @@ export const useSequencerStore = create<SequencerState>((set, get) => ({
   setRowPans: (pans) => set({ rowPans: pans }),
   setRowDelaySends: (sends) => set({ rowDelaySends: sends }),
   setRowReverbSends: (sends) => set({ rowReverbSends: sends }),
+  setRowTargets: (targets) => set({ rowTargets: targets }),
   clear: () =>
     set((state) => ({
       grid: createGrid(state.notes.length, state.steps, 0),

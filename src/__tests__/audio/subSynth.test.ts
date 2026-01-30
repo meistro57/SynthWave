@@ -1,5 +1,6 @@
 import {
   disposeSubSynth,
+  setSubSynthOutputGain,
   setSubSynthPan,
   updateSubSynth,
 } from "@/audio/instruments/subSynth";
@@ -44,6 +45,19 @@ describe("audio/instruments/subSynth", () => {
     it("clamps out-of-range values without throwing", () => {
       expect(() => setSubSynthPan(-5)).not.toThrow();
       expect(() => setSubSynthPan(5)).not.toThrow();
+    });
+  });
+
+  describe("setSubSynthOutputGain", () => {
+    it("accepts values within 0 to 1 range without throwing", () => {
+      expect(() => setSubSynthOutputGain(0)).not.toThrow();
+      expect(() => setSubSynthOutputGain(0.5)).not.toThrow();
+      expect(() => setSubSynthOutputGain(1)).not.toThrow();
+    });
+
+    it("clamps out-of-range values without throwing", () => {
+      expect(() => setSubSynthOutputGain(-1)).not.toThrow();
+      expect(() => setSubSynthOutputGain(2)).not.toThrow();
     });
   });
 

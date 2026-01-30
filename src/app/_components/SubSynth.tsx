@@ -48,7 +48,11 @@ function savePresets(presets: PresetMap) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
 }
 
-export function SubSynth() {
+type SubSynthProps = {
+  embedded?: boolean;
+};
+
+export function SubSynth({ embedded = false }: SubSynthProps) {
   const [ready, setReady] = useState(false);
   const [oscType, setOscType] = useState<Tone.ToneOscillatorType>("sawtooth");
   const [envelope, setEnvelope] = useState<SubSynthEnvelope>({
@@ -163,7 +167,13 @@ export function SubSynth() {
   const presetNames = useMemo(() => Object.keys(presets).sort(), [presets]);
 
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
+    <section
+      className={
+        embedded
+          ? "rounded-2xl border border-slate-800 bg-slate-950/60 p-6"
+          : "rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg"
+      }
+    >
       <div className="space-y-4">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">SubSynth</p>

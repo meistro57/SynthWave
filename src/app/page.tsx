@@ -1,7 +1,7 @@
 import { AudioTest } from "./_components/AudioTest";
+import { MachineRack } from "./_components/MachineRack";
 import { MasterMeter } from "./_components/MasterMeter";
 import { StepSequencer } from "./_components/StepSequencer";
-import { SubSynth } from "./_components/SubSynth";
 import { TempoDisplay } from "./_components/TempoDisplay";
 import { TransportControls } from "./_components/TransportControls";
 
@@ -27,7 +27,7 @@ export default function Home() {
           <AudioTest />
           <TransportControls />
           <MasterMeter />
-          <SubSynth />
+          <MachineRack />
         </div>
 
         <StepSequencer />

@@ -140,14 +140,14 @@ interface Step {
 **Goal:** Create modular "machine" system
 
 **Tasks:**
-- [ ] Design base Machine abstract class
-- [ ] Create Machine Registry/Factory pattern
-- [ ] Build Machine Rack container component
-- [ ] Implement add/remove machines (max 14)
-- [ ] Create machine selector UI
-- [ ] Add machine reordering (drag & drop)
-- [ ] Build machine clone/duplicate function
-- [ ] Implement machine mute/solo per machine
+- [x] Design base Machine abstract class
+- [x] Create Machine Registry/Factory pattern
+- [x] Build Machine Rack container component
+- [x] Implement add/remove machines (max 14)
+- [x] Create machine selector UI
+- [x] Add machine reordering (drag & drop)
+- [x] Build machine clone/duplicate function
+- [x] Implement machine mute/solo per machine
 
 **Machine Types to Implement:**
 1. **SubSynth** - Virtual analog (already built in Phase 1)
@@ -181,15 +181,15 @@ abstract class Machine {
 **Goal:** Multi-sample playback synthesizer
 
 **Tasks:**
-- [ ] Build Tone.Sampler wrapper
-- [ ] Create sample library browser
-- [ ] Implement drag-drop WAV file upload
-- [ ] Add sample mapping across keyboard
-- [ ] Build playback controls (loop, reverse, pitch)
-- [ ] Create ADSR for amplitude
-- [ ] Add filter section
-- [ ] Support SoundFont (.sf2) import
-- [ ] Build sample editor (trim, normalize)
+- [x] Build Tone.Sampler wrapper
+- [x] Create sample library browser
+- [x] Implement drag-drop WAV file upload
+- [x] Add sample mapping across keyboard
+- [x] Build playback controls (loop, reverse, pitch)
+- [x] Create ADSR for amplitude
+- [x] Add filter section
+- [x] Support SoundFont (.sf2) import
+- [x] Build sample editor (trim, normalize)
 
 **Deliverables:**
 - Working sampler with library
@@ -202,14 +202,14 @@ abstract class Machine {
 **Goal:** 8-channel drum sampler with step sequencer
 
 **Tasks:**
-- [ ] Create 8-channel Tone.Players
-- [ ] Build 8-track step sequencer UI
-- [ ] Load default drum kit samples
-- [ ] Implement sample assignment per pad
-- [ ] Add individual channel controls (volume, pan, tune)
-- [ ] Create swing/humanize function
-- [ ] Build pattern variations (A/B/C/D)
-- [ ] Add drum pad trigger interface
+- [x] Create 8-channel Tone.Players
+- [x] Build 8-track step sequencer UI
+- [x] Load default drum kit samples
+- [x] Implement sample assignment per pad
+- [x] Add individual channel controls (volume, pan, tune)
+- [x] Create swing/humanize function
+- [x] Build pattern variations (A/B/C/D)
+- [x] Add drum pad trigger interface
 
 **Deliverables:**
 - 8-channel drum machine
@@ -222,18 +222,18 @@ abstract class Machine {
 **Goal:** Complete initial machine roster
 
 **FMSynth Tasks:**
-- [ ] Implement Tone.FMSynth (3-operator)
-- [ ] Create modulation matrix UI
-- [ ] Add algorithm selector
-- [ ] Build envelope per operator
-- [ ] Add feedback controls
+- [x] Implement Tone.FMSynth (3-operator)
+- [x] Create modulation matrix UI
+- [x] Add algorithm selector
+- [x] Build envelope per operator
+- [x] Add feedback controls
 
 **BassLine Tasks:**
-- [ ] Create acid-style monosynth
-- [ ] Implement slide/glide between notes
-- [ ] Add accent controls
-- [ ] Build filter with resonance
-- [ ] Create pattern-based sequencer
+- [x] Create acid-style monosynth
+- [x] Implement slide/glide between notes
+- [x] Add accent controls
+- [x] Build filter with resonance
+- [x] Create pattern-based sequencer
 
 **Deliverables:**
 - 2 additional synth machines

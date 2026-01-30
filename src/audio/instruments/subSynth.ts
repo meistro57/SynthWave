@@ -23,10 +23,12 @@ export type SubSynthPreset = {
 };
 
 let subSynth: Tone.MonoSynth | null = null;
+let subSynthGain: Tone.Gain | null = null;
 let subSynthPanner: Tone.Panner | null = null;
 let connected = false;
 let pendingParams: Omit<SubSynthPreset, "name"> | null = null;
 let pendingPan = 0;
+let pendingGain = 1;
 
 function ensureSubSynth() {
   if (!subSynth) {
@@ -34,6 +36,13 @@ function ensureSubSynth() {
   }
 
   return subSynth;
+}
+
+function ensureSubSynthGain() {
+  if (!subSynthGain) {
+    subSynthGain = new Tone.Gain(pendingGain);
+  }
+  return subSynthGain;
 }
 
 function applyParams(synth: Tone.MonoSynth, params: Omit<SubSynthPreset, "name">) {
@@ -47,6 +56,7 @@ function applyParams(synth: Tone.MonoSynth, params: Omit<SubSynthPreset, "name">
 export async function initSubSynth() {
   await initAudioEngine();
   const synth = ensureSubSynth();
+  const gain = ensureSubSynthGain();
   if (pendingParams) {
     applyParams(synth, pendingParams);
   }
@@ -55,7 +65,8 @@ export async function initSubSynth() {
       subSynthPanner = new Tone.Panner(0);
     }
     subSynthPanner.pan.value = pendingPan;
-    synth.connect(subSynthPanner);
+    synth.connect(gain);
+    gain.connect(subSynthPanner);
     subSynthPanner.connect(getDelaySend());
     subSynthPanner.connect(getReverbSend());
     routeToMaster(subSynthPanner);
@@ -97,8 +108,10 @@ export function updateSubSynth(params: Omit<SubSynthPreset, "name">) {
 
 export function disposeSubSynth() {
   subSynth?.dispose();
+  subSynthGain?.dispose();
   subSynthPanner?.dispose();
   subSynth = null;
+  subSynthGain = null;
   subSynthPanner = null;
   connected = false;
   pendingParams = null;
@@ -108,4 +121,10 @@ export function setSubSynthPan(pan: number) {
   pendingPan = Math.max(-1, Math.min(1, pan));
   if (!subSynthPanner) return;
   subSynthPanner.pan.value = pendingPan;
+}
+
+export function setSubSynthOutputGain(level: number) {
+  pendingGain = Math.max(0, Math.min(1, level));
+  if (!subSynthGain) return;
+  subSynthGain.gain.value = pendingGain;
 }

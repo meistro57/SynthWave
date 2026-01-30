@@ -89,49 +89,49 @@
 ## Phase 2: The Rack System (Next Up)
 
 ### 2.1 Machine Architecture
-- [ ] Design base Machine abstract class
-- [ ] Create Machine Registry/Factory pattern
-- [ ] Build Machine Rack container component
-- [ ] Implement add/remove machines (max 14)
-- [ ] Create machine selector UI
-- [ ] Add machine reordering (drag & drop)
-- [ ] Build machine clone/duplicate function
-- [ ] Implement machine mute/solo per machine
+- [x] Design base Machine abstract class
+- [x] Create Machine Registry/Factory pattern
+- [x] Build Machine Rack container component
+- [x] Implement add/remove machines (max 14)
+- [x] Create machine selector UI
+- [x] Add machine reordering (drag & drop)
+- [x] Build machine clone/duplicate function
+- [x] Implement machine mute/solo per machine
 
 ### 2.2 PCMSynth (Sampler)
-- [ ] Build Tone.Sampler wrapper
-- [ ] Create sample library browser
-- [ ] Implement drag-drop WAV file upload
-- [ ] Add sample mapping across keyboard
-- [ ] Build playback controls (loop, reverse, pitch)
-- [ ] Create ADSR for amplitude
-- [ ] Add filter section
-- [ ] Support SoundFont (.sf2) import
-- [ ] Build sample editor (trim, normalize)
+- [x] Build Tone.Sampler wrapper
+- [x] Create sample library browser
+- [x] Implement drag-drop WAV file upload
+- [x] Add sample mapping across keyboard
+- [x] Build playback controls (loop, reverse, pitch)
+- [x] Create ADSR for amplitude
+- [x] Add filter section
+- [x] Support SoundFont (.sf2) import
+- [x] Build sample editor (trim, normalize)
 
 ### 2.3 BeatBox (Drum Machine)
-- [ ] Create 8-channel Tone.Players
-- [ ] Build 8-track step sequencer UI
-- [ ] Load default drum kit samples
-- [ ] Implement sample assignment per pad
-- [ ] Add individual channel controls (volume, pan, tune)
-- [ ] Create swing/humanize function
-- [ ] Build pattern variations (A/B/C/D)
-- [ ] Add drum pad trigger interface
+- [x] Create 8-channel Tone.Players
+- [x] Build 8-track step sequencer UI
+- [x] Load default drum kit samples
+- [x] Implement sample assignment per pad
+- [x] Add individual channel controls (volume, pan, tune)
+- [x] Create swing/humanize function
+- [x] Build pattern variations (A/B/C/D)
+- [x] Add drum pad trigger interface
 
 ### 2.4 FMSynth
-- [ ] Implement Tone.FMSynth (3-operator)
-- [ ] Create modulation matrix UI
-- [ ] Add algorithm selector
-- [ ] Build envelope per operator
-- [ ] Add feedback controls
+- [x] Implement Tone.FMSynth (3-operator)
+- [x] Create modulation matrix UI
+- [x] Add algorithm selector
+- [x] Build envelope per operator
+- [x] Add feedback controls
 
 ### 2.5 BassLine
-- [ ] Create acid-style monosynth
-- [ ] Implement slide/glide between notes
-- [ ] Add accent controls
-- [ ] Build filter with resonance
-- [ ] Create pattern-based sequencer
+- [x] Create acid-style monosynth
+- [x] Implement slide/glide between notes
+- [x] Add accent controls
+- [x] Build filter with resonance
+- [x] Create pattern-based sequencer
 
 ---
 

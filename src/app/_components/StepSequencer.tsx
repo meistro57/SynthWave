@@ -4,7 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as Tone from "tone";
 
 import { setDelaySendLevel, setReverbSendLevel } from "@/audio/audioEngine";
+import { triggerBassLine } from "@/audio/instruments/bassLine";
+import { triggerFMSynth } from "@/audio/instruments/fmSynth";
+import { triggerPCMSynth } from "@/audio/instruments/pcmSynth";
 import { setSubSynthPan, triggerSubSynth } from "@/audio/instruments/subSynth";
+import { useMachineTargetStore } from "@/store/useMachineTargetStore";
 import {
   PatternSlot,
   SequencerPattern,
@@ -38,6 +42,7 @@ type SequencerSettings = {
   rowPans: number[];
   rowDelaySends: number[];
   rowReverbSends: number[];
+  rowTargets: Array<"subsynth" | "pcmsynth" | "fmsynth" | "bassline">;
   editMode: EditMode;
   slotAuto: Record<PatternSlot, boolean>;
   randomizeDensity: number;
@@ -84,6 +89,7 @@ const SLOT_LABELS: PatternSlot[] = ["A", "B", "C", "D"];
 
 export function StepSequencer() {
   const { bpm, isPlaying, humanizeMs } = useTransportStore();
+  const { target } = useMachineTargetStore();
   const {
     grid,
     probability,
@@ -106,6 +112,7 @@ export function StepSequencer() {
     setSlot,
     saveToSlot,
     setSteps,
+    rowTargets,
     rowMutes,
     rowSolos,
     toggleRowMute,
@@ -126,6 +133,7 @@ export function StepSequencer() {
     rowReverbSends,
     setRowDelaySends,
     setRowReverbSends,
+    setRowTargets,
     applyQuickPreset,
   } = useSequencerStore();
   const [currentStep, setCurrentStep] = useState(0);
@@ -153,6 +161,7 @@ export function StepSequencer() {
   const rowPansRef = useRef(rowPans);
   const rowDelaySendsRef = useRef(rowDelaySends);
   const rowReverbSendsRef = useRef(rowReverbSends);
+  const rowTargetsRef = useRef(rowTargets);
   const resolutionRef = useRef(resolution);
   const notesRef = useRef(notes);
   const stepsRef = useRef(steps);
@@ -197,6 +206,7 @@ export function StepSequencer() {
       if (parsed.rowPans) setRowPans(parsed.rowPans);
       if (parsed.rowDelaySends) setRowDelaySends(parsed.rowDelaySends);
       if (parsed.rowReverbSends) setRowReverbSends(parsed.rowReverbSends);
+      if (parsed.rowTargets) setRowTargets(parsed.rowTargets);
       if (parsed.editMode) setEditMode(parsed.editMode);
       if (parsed.slotAuto) setSlotAuto(parsed.slotAuto);
       if (typeof parsed.randomizeDensity === "number") setRandomizeDensity(parsed.randomizeDensity);
@@ -212,6 +222,7 @@ export function StepSequencer() {
     setRowPans,
     setRowDelaySends,
     setRowReverbSends,
+    setRowTargets,
     setSlotAuto,
     setSteps,
   ]);
@@ -226,6 +237,7 @@ export function StepSequencer() {
       rowPans,
       rowDelaySends,
       rowReverbSends,
+      rowTargets,
       editMode,
       slotAuto,
       randomizeDensity,
@@ -240,6 +252,7 @@ export function StepSequencer() {
     rowPans,
     rowDelaySends,
     rowReverbSends,
+    rowTargets,
     editMode,
     slotAuto,
     randomizeDensity,
@@ -289,6 +302,10 @@ export function StepSequencer() {
   useEffect(() => {
     rowReverbSendsRef.current = rowReverbSends;
   }, [rowReverbSends]);
+
+  useEffect(() => {
+    rowTargetsRef.current = rowTargets;
+  }, [rowTargets]);
 
   useEffect(() => {
     resolutionRef.current = resolution;
@@ -341,6 +358,7 @@ export function StepSequencer() {
       const currentTransposes = rowTransposesRef.current;
       const currentDelaySends = rowDelaySendsRef.current;
       const currentReverbSends = rowReverbSendsRef.current;
+      const currentTargets = rowTargetsRef.current;
       const currentNotes = notesRef.current;
       const stepResolution = resolutionRef.current;
       const stepSeconds = Tone.Time(stepResolution).toSeconds();
@@ -359,6 +377,7 @@ export function StepSequencer() {
           const pan = currentPans[row] ?? 0;
           const delaySend = currentDelaySends[row] ?? 0.2;
           const reverbSend = currentReverbSends[row] ?? 0.2;
+          const rowTarget = currentTargets[row] ?? target;
           const humanizeOffset = (Math.random() * 2 - 1) * (humanizeRef.current / 1000);
           const scheduledTime = Math.max(0, Tone.Time(time).toSeconds() + humanizeOffset);
           const subStep = stepSeconds / ratchetCount;
@@ -369,7 +388,15 @@ export function StepSequencer() {
             setSubSynthPan(pan);
             setDelaySendLevel(delaySend);
             setReverbSendLevel(reverbSend);
-            triggerSubSynth(note, duration, ratchetTime, velocity * volume);
+            if (rowTarget === "subsynth") {
+              triggerSubSynth(note, duration, ratchetTime, velocity * volume);
+            } else if (rowTarget === "pcmsynth") {
+              triggerPCMSynth(note, duration, ratchetTime, velocity * volume);
+            } else if (rowTarget === "fmsynth") {
+              triggerFMSynth(note, duration, ratchetTime, velocity * volume);
+            } else if (rowTarget === "bassline") {
+              triggerBassLine(note, duration, ratchetTime, velocity * volume, false, false);
+            }
           }
         }
       }
@@ -405,7 +432,7 @@ export function StepSequencer() {
         scheduleIdRef.current = null;
       }
     };
-  }, [isPlaying]);
+  }, [isPlaying, target]);
 
   useEffect(() => {
     Tone.Transport.bpm.value = bpm;
@@ -684,6 +711,20 @@ export function StepSequencer() {
             >
               Paste
             </button>
+            <select
+              value={target}
+              onChange={(event) =>
+                useMachineTargetStore
+                  .getState()
+                  .setTarget(event.target.value as "subsynth" | "pcmsynth" | "fmsynth" | "bassline")
+              }
+              className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-xs font-semibold text-slate-200"
+            >
+              <option value="subsynth">SubSynth</option>
+              <option value="pcmsynth">PCMSynth</option>
+              <option value="fmsynth">FMSynth</option>
+              <option value="bassline">BassLine</option>
+            </select>
           </div>
         </div>
 
@@ -885,6 +926,25 @@ export function StepSequencer() {
                       className="w-16"
                       title={`Reverb ${Math.round((rowReverbSends[rowIndex] ?? 0) * 100)}%`}
                     />
+                    <select
+                      value={rowTargets[rowIndex] ?? target}
+                      onChange={(event) => {
+                        const next = [...rowTargets];
+                        next[rowIndex] = event.target.value as
+                          | "subsynth"
+                          | "pcmsynth"
+                          | "fmsynth"
+                          | "bassline";
+                        setRowTargets(next);
+                      }}
+                      className="rounded border border-slate-700 bg-slate-950 px-1 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-200"
+                      title="Row target"
+                    >
+                      <option value="subsynth">Sub</option>
+                      <option value="pcmsynth">PCM</option>
+                      <option value="fmsynth">FM</option>
+                      <option value="bassline">Bass</option>
+                    </select>
                   </div>
                   {row.map((velocity, colIndex) => {
                     const isActive = velocity > 0;
