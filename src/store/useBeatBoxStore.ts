@@ -30,6 +30,7 @@ export type BeatBoxState = {
   channels: BeatBoxChannel[];
   currentSlot: PatternSlot;
   slots: Record<PatternSlot, BeatBoxPattern | null>;
+  setSlots: (slots: Record<PatternSlot, BeatBoxPattern | null>) => void;
   setSteps: (steps: number) => void;
   toggleCell: (row: number, col: number, velocity?: number) => void;
   setVelocity: (row: number, col: number, velocity: number) => void;
@@ -137,6 +138,7 @@ export const useBeatBoxStore = create<BeatBoxState>((set, get) => ({
   channels: DEFAULT_CHANNELS,
   currentSlot: "A",
   slots: { A: null, B: null, C: null, D: null },
+  setSlots: (slots) => set({ slots }),
   setSteps: (steps) =>
     set((state) => ({
       steps,
