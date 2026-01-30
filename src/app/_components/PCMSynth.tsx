@@ -486,7 +486,7 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
     player.loop = preview.loop;
     player.reverse = preview.reverse;
     player.playbackRate = Math.pow(2, preview.pitch / 12);
-    player.buffer = selectedSample.buffer;
+    player.buffer = new Tone.ToneAudioBuffer(selectedSample.buffer);
     if (preview.loop && selectedSample.loopStart !== undefined && selectedSample.loopEnd !== undefined) {
       player.loopStart = selectedSample.loopStart;
       player.loopEnd = selectedSample.loopEnd;
