@@ -109,23 +109,19 @@ php artisan serve
 
 ## 📖 Documentation
 
-- **[User Manual](docs/USER_MANUAL.md)** - Complete guide to using SynthWave
-- **[API Documentation](docs/API.md)** - Backend API reference
-- **[Development Guide](docs/DEVELOPMENT.md)** - Contributing and architecture
-- **[Project Plan](SYNTHWAVE_PROJECT_PLAN.md)** - Full development roadmap
+- **[Project Plan](docs/PROJECT_PLAN.md)** - Full development roadmap
+- **[Todo](docs/TODO.md)** - Active task list and completed milestones
 
 ### Quick Links
-- [Keyboard Shortcuts](docs/SHORTCUTS.md)
 - [Video Tutorials](https://youtube.com/@synthwave) *(Coming Soon)*
-- [Example Projects](docs/EXAMPLES.md)
-- [FAQ](docs/FAQ.md)
+- [FAQ](docs/FAQ.md) *(Coming Soon)*
 
 ---
 
 ## 🏗️ Tech Stack
 
 ### Frontend
-- **Framework:** [Next.js 15](https://nextjs.org/) (React 19)
+- **Framework:** [Next.js 16](https://nextjs.org/) (React 19)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
 - **Audio Engine:** [Tone.js](https://tonejs.github.io/) + Web Audio API
@@ -170,7 +166,7 @@ php artisan serve
 - [ ] Cloud sync
 - [ ] Collaboration features
 
-See the [full project plan](SYNTHWAVE_PROJECT_PLAN.md) for detailed timeline.
+See the [full project plan](docs/PROJECT_PLAN.md) for detailed timeline.
 
 ---
 

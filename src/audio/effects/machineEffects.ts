@@ -39,5 +39,5 @@ export function getMachineMeter(type: MachineType) {
 
 export function setMachineWidth(type: MachineType, widthValue: number) {
   const effects = getMachineEffects(type);
-  effects.width.width = Math.max(0, Math.min(1, widthValue));
+  effects.width.width.value = Math.max(0, Math.min(1, widthValue));
 }

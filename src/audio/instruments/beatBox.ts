@@ -178,19 +178,28 @@ export async function initBeatBox() {
 export function setBeatBoxChannelVolume(index: number, level: number) {
   pendingVolumes[index] = Math.max(0, Math.min(1, level));
   if (!channels) return;
-  channels[index]?.gain?.gain.value = pendingVolumes[index];
+  const channel = channels[index];
+  if (channel?.gain) {
+    channel.gain.gain.value = pendingVolumes[index];
+  }
 }
 
 export function setBeatBoxChannelPan(index: number, pan: number) {
   pendingPans[index] = Math.max(-1, Math.min(1, pan));
   if (!channels) return;
-  channels[index]?.panner?.pan.value = pendingPans[index];
+  const channel = channels[index];
+  if (channel?.panner) {
+    channel.panner.pan.value = pendingPans[index];
+  }
 }
 
 export function setBeatBoxChannelTune(index: number, semitones: number) {
   pendingTunes[index] = Math.max(-12, Math.min(12, semitones));
   if (!channels) return;
-  channels[index]?.player && (channels[index].player.playbackRate = Math.pow(2, pendingTunes[index] / 12));
+  const channel = channels[index];
+  if (channel?.player) {
+    channel.player.playbackRate = Math.pow(2, pendingTunes[index] / 12);
+  }
 }
 
 export async function setBeatBoxSample(index: number, buffer: AudioBuffer) {

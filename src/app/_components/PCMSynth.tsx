@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent } from "react";
 import * as Tone from "tone";
-import { DEFAULT_GENERATOR_VALUES, GeneratorType, SampleType, SoundFont2 } from "soundfont2";
-import type { Key, Sample } from "soundfont2";
+import type { Key, Sample, SoundFont2 } from "soundfont2";
 
 import {
   PCMSynthEnvelope,
@@ -54,6 +53,17 @@ type SoundFontPreset = {
   name: string;
 };
 
+type SoundFontModule = typeof import("soundfont2");
+
+let soundFontModule: SoundFontModule | null = null;
+
+async function loadSoundFontModule() {
+  if (soundFontModule) return soundFontModule;
+  const module = await import("soundfont2");
+  soundFontModule = module;
+  return module;
+}
+
 const FACTORY_SAMPLES = [
   { id: "sine", name: "Factory Sine" },
   { id: "noise", name: "Factory Noise" },
@@ -93,9 +103,13 @@ function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
-function getGeneratorValue(generators: Record<number, { value?: number } | undefined>, id: number) {
+function getGeneratorValue(
+  sf2: SoundFontModule,
+  generators: Record<number, { value?: number } | undefined>,
+  id: number,
+) {
   if (generators[id]?.value !== undefined) return generators[id]!.value ?? 0;
-  return DEFAULT_GENERATOR_VALUES[id as keyof typeof DEFAULT_GENERATOR_VALUES] ?? 0;
+  return sf2.DEFAULT_GENERATOR_VALUES[id as keyof typeof sf2.DEFAULT_GENERATOR_VALUES] ?? 0;
 }
 
 function getGeneratorRange(
@@ -142,20 +156,20 @@ function getChannelDataFromSample(
   };
 }
 
-function buildAudioBufferFromSoundFont(key: Key, soundFont: SoundFont2) {
+function buildAudioBufferFromSoundFont(sf2: SoundFontModule, key: Key, soundFont: SoundFont2) {
   const { header } = key.sample;
   const startOffset =
-    getGeneratorValue(key.generators, GeneratorType.StartAddrsOffset) +
-    getGeneratorValue(key.generators, GeneratorType.StartAddrsCoarseOffset) * 32768;
+    getGeneratorValue(sf2, key.generators, sf2.GeneratorType.StartAddrsOffset) +
+    getGeneratorValue(sf2, key.generators, sf2.GeneratorType.StartAddrsCoarseOffset) * 32768;
   const endOffset =
-    getGeneratorValue(key.generators, GeneratorType.EndAddrsOffset) +
-    getGeneratorValue(key.generators, GeneratorType.EndAddrsCoarseOffset) * 32768;
+    getGeneratorValue(sf2, key.generators, sf2.GeneratorType.EndAddrsOffset) +
+    getGeneratorValue(sf2, key.generators, sf2.GeneratorType.EndAddrsCoarseOffset) * 32768;
   const startLoopOffset =
-    getGeneratorValue(key.generators, GeneratorType.StartLoopAddrsOffset) +
-    getGeneratorValue(key.generators, GeneratorType.StartLoopAddrsCoarseOffset) * 32768;
+    getGeneratorValue(sf2, key.generators, sf2.GeneratorType.StartLoopAddrsOffset) +
+    getGeneratorValue(sf2, key.generators, sf2.GeneratorType.StartLoopAddrsCoarseOffset) * 32768;
   const endLoopOffset =
-    getGeneratorValue(key.generators, GeneratorType.EndLoopAddrsOffset) +
-    getGeneratorValue(key.generators, GeneratorType.EndLoopAddrsCoarseOffset) * 32768;
+    getGeneratorValue(sf2, key.generators, sf2.GeneratorType.EndLoopAddrsOffset) +
+    getGeneratorValue(sf2, key.generators, sf2.GeneratorType.EndLoopAddrsCoarseOffset) * 32768;
 
   const offsets = {
     start: startOffset,
@@ -165,13 +179,14 @@ function buildAudioBufferFromSoundFont(key: Key, soundFont: SoundFont2) {
   };
 
   const hasLinked =
-    header.type === SampleType.Left ||
-    header.type === SampleType.Right ||
-    header.type === SampleType.Linked;
+    header.type === sf2.SampleType.Left ||
+    header.type === sf2.SampleType.Right ||
+    header.type === sf2.SampleType.Linked;
   const linkedSample =
     hasLinked && soundFont.samples[header.link] ? soundFont.samples[header.link] : null;
-  const leftSample = header.type === SampleType.Right && linkedSample ? linkedSample : key.sample;
-  const rightSample = header.type === SampleType.Right ? key.sample : linkedSample;
+  const leftSample =
+    header.type === sf2.SampleType.Right && linkedSample ? linkedSample : key.sample;
+  const rightSample = header.type === sf2.SampleType.Right ? key.sample : linkedSample;
 
   const leftData = getChannelDataFromSample(leftSample, offsets);
   const rightData = rightSample ? getChannelDataFromSample(rightSample, offsets) : null;
@@ -193,54 +208,67 @@ function buildAudioBufferFromSoundFont(key: Key, soundFont: SoundFont2) {
 }
 
 function deriveEnvelopeFromGenerators(
+  sf2: SoundFontModule,
   generators: Record<number, { value?: number } | undefined>,
   keyNumber: number,
 ) {
   const keyOffset = keyNumber - 60;
-  const attackTc = getGeneratorValue(generators, GeneratorType.AttackVolEnv);
+  const attackTc = getGeneratorValue(sf2, generators, sf2.GeneratorType.AttackVolEnv);
   const holdTc =
-    getGeneratorValue(generators, GeneratorType.HoldVolEnv) +
-    keyOffset * getGeneratorValue(generators, GeneratorType.KeyNumToVolEnvHold);
+    getGeneratorValue(sf2, generators, sf2.GeneratorType.HoldVolEnv) +
+    keyOffset * getGeneratorValue(sf2, generators, sf2.GeneratorType.KeyNumToVolEnvHold);
   const decayTc =
-    getGeneratorValue(generators, GeneratorType.DecayVolEnv) +
-    keyOffset * getGeneratorValue(generators, GeneratorType.KeyNumToVolEnvDecay);
-  const releaseTc = getGeneratorValue(generators, GeneratorType.ReleaseVolEnv);
+    getGeneratorValue(sf2, generators, sf2.GeneratorType.DecayVolEnv) +
+    keyOffset * getGeneratorValue(sf2, generators, sf2.GeneratorType.KeyNumToVolEnvDecay);
+  const releaseTc = getGeneratorValue(sf2, generators, sf2.GeneratorType.ReleaseVolEnv);
 
   const attack = clamp(timecentsToSeconds(attackTc), 0.001, 10);
   const hold = clamp(timecentsToSeconds(holdTc), 0, 10);
   const decay = clamp(timecentsToSeconds(decayTc), 0.01, 10);
   const release = clamp(timecentsToSeconds(releaseTc), 0.01, 10);
-  const sustainAttenuation = getGeneratorValue(generators, GeneratorType.SustainVolEnv);
+  const sustainAttenuation = getGeneratorValue(sf2, generators, sf2.GeneratorType.SustainVolEnv);
   const sustain = clamp(centibelsToLinear(sustainAttenuation), 0, 1);
   return { attack, decay: hold + decay, sustain, release };
 }
 
-function deriveFilterFromGenerators(generators: Record<number, { value?: number } | undefined>) {
+function deriveFilterFromGenerators(
+  sf2: SoundFontModule,
+  generators: Record<number, { value?: number } | undefined>,
+) {
   const cutoff = clamp(
-    centsToFrequency(getGeneratorValue(generators, GeneratorType.InitialFilterFc)),
+    centsToFrequency(getGeneratorValue(sf2, generators, sf2.GeneratorType.InitialFilterFc)),
     80,
     18000,
   );
-  const resonance = clamp(Math.pow(10, getGeneratorValue(generators, GeneratorType.InitialFilterQ) / 200), 0.1, 20);
+  const resonance = clamp(
+    Math.pow(10, getGeneratorValue(sf2, generators, sf2.GeneratorType.InitialFilterQ) / 200),
+    0.1,
+    20,
+  );
   return { frequency: cutoff, resonance };
 }
 
 function deriveFilterFromGeneratorsWithScaling(
+  sf2: SoundFontModule,
   generators: Record<number, { value?: number } | undefined>,
   keyNumber: number,
   velocityMidi: number,
 ) {
-  let cutoffCents = getGeneratorValue(generators, GeneratorType.InitialFilterFc);
-  const modEnvToFilter = getGeneratorValue(generators, GeneratorType.ModEnvToFilterFc);
+  let cutoffCents = getGeneratorValue(sf2, generators, sf2.GeneratorType.InitialFilterFc);
+  const modEnvToFilter = getGeneratorValue(sf2, generators, sf2.GeneratorType.ModEnvToFilterFc);
   if (modEnvToFilter !== 0) {
     cutoffCents += modEnvToFilter * (velocityMidi / 127);
   }
-  const scaleTuning = getGeneratorValue(generators, GeneratorType.ScaleTuning);
+  const scaleTuning = getGeneratorValue(sf2, generators, sf2.GeneratorType.ScaleTuning);
   if (scaleTuning !== 100) {
     cutoffCents += (keyNumber - 60) * (scaleTuning - 100);
   }
   const cutoff = clamp(centsToFrequency(cutoffCents), 80, 18000);
-  const resonance = clamp(Math.pow(10, getGeneratorValue(generators, GeneratorType.InitialFilterQ) / 200), 0.1, 20);
+  const resonance = clamp(
+    Math.pow(10, getGeneratorValue(sf2, generators, sf2.GeneratorType.InitialFilterQ) / 200),
+    0.1,
+    20,
+  );
   return { frequency: cutoff, resonance };
 }
 
@@ -249,7 +277,13 @@ function isKeyInRange(range: { lo: number; hi: number } | undefined, key: number
   return key >= range.lo && key <= range.hi;
 }
 
-function getVelocityLayersForKey(soundFont: SoundFont2, bank: number, presetNumber: number, key: number) {
+function getVelocityLayersForKey(
+  sf2: SoundFontModule,
+  soundFont: SoundFont2,
+  bank: number,
+  presetNumber: number,
+  key: number,
+) {
   const bankData = soundFont.banks[bank];
   if (!bankData) return [];
   const preset = bankData.presets[presetNumber];
@@ -269,7 +303,7 @@ function getVelocityLayersForKey(soundFont: SoundFont2, bank: number, presetNumb
         number,
         { value?: number; range?: { lo: number; hi: number } }
       >;
-      const velRange = getGeneratorRange(generators, GeneratorType.VelRange);
+      const velRange = getGeneratorRange(generators, sf2.GeneratorType.VelRange);
       layers.push({ generators, sample: instrumentZone.sample, velRange: velRange ?? undefined });
     }
   }
@@ -521,9 +555,10 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
     if (!files || files.length === 0) return;
     const file = files[0];
     try {
+      const sf2Module = await loadSoundFontModule();
       await initAudioEngine();
       const arrayBuffer = await file.arrayBuffer();
-      const sf2 = new SoundFont2(new Uint8Array(arrayBuffer));
+      const sf2 = new sf2Module.SoundFont2(new Uint8Array(arrayBuffer));
       const presets = sf2.presets
         .map((preset) => ({
           bank: preset.header.bank,
@@ -545,6 +580,7 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
 
   const loadSoundFontPreset = async () => {
     if (!soundFont || !selectedPreset) return;
+    const sf2Module = await loadSoundFontModule();
     setStatus(`Loading preset ${selectedPreset.name}...`);
     resetPCMSynthSampler();
     clearPCMSynthNoteEnvelopes();
@@ -557,7 +593,13 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
 
     try {
       for (let midi = 0; midi < 128; midi += 1) {
-        const layers = getVelocityLayersForKey(soundFont, selectedPreset.bank, selectedPreset.preset, midi);
+        const layers = getVelocityLayersForKey(
+          sf2Module,
+          soundFont,
+          selectedPreset.bank,
+          selectedPreset.preset,
+          midi,
+        );
         if (layers.length === 0) continue;
         const note = Tone.Frequency(midi, "midi").toNote();
 
@@ -582,6 +624,7 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
           } as Key;
 
           const { buffer, loopStart, loopEnd, cacheKey } = buildAudioBufferFromSoundFont(
+            sf2Module,
             fakeKey,
             soundFont,
           );
@@ -591,8 +634,9 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
             sampleMap.set(cacheKey, resolved);
           }
 
-          const derivedEnvelope = deriveEnvelopeFromGenerators(layer.generators, midi);
+          const derivedEnvelope = deriveEnvelopeFromGenerators(sf2Module, layer.generators, midi);
           const derivedFilter = deriveFilterFromGeneratorsWithScaling(
+            sf2Module,
             layer.generators,
             midi,
             velocityMidi,
