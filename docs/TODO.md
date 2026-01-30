@@ -1,6 +1,8 @@
 # SynthWave TODO
 
-## Testing Infrastructure
+## Phase 1: Foundation & Proof of Concept (Complete)
+
+### Testing Infrastructure
 - [x] Fix build: replace Google Fonts with system fonts for offline/CI compatibility
 - [x] Fix TypeScript error in SubSynth oscillator type
 - [x] Fix MasterMeter SSR issue (lazy init via useEffect)
@@ -22,9 +24,7 @@
 - [x] Write component tests for StepSequencer
 - [x] All 148 tests passing across 13 test suites
 
-## Phase 1 Kickoff (Complete)
-
-## Immediate
+### 1.1 Project Setup
 - [x] Confirm repo structure and package manager (npm)
 - [x] Initialize Next.js 15 + TypeScript app
 - [x] Verify Tailwind CSS setup
@@ -34,26 +34,30 @@
 - [x] Set up linting/formatting (ESLint, TS strict)
 - [x] Add basic app shell and dev server smoke test
 
-## Next
+### 1.2 Core Audio Engine
 - [x] Add audio routing utilities and master metering
 - [x] Add basic transport UI (tempo + time signature controls)
-- [x] Build SubSynth MVP (MonoSynth wrapper + basic UI controls)
-- [x] Add 16-step sequencer grid UI (state + UI only)
 - [x] Improve audio engine (master chain + meter smoothing + tempo display)
-- [x] Wire step sequencer into SubSynth playback (Tone.Transport schedule)
+
+### 1.3 First Synthesizer (SubSynth)
+- [x] Build SubSynth MVP (MonoSynth wrapper + basic UI controls)
 - [x] Add SubSynth preset save/load (localStorage)
+- [x] Add QWERTY keyboard input for SubSynth
+- [x] Add hold/sustain mode for keyboard input
+
+### 1.4 Basic Pattern Sequencer
+- [x] Add 16-step sequencer grid UI (state + UI only)
+- [x] Wire step sequencer into SubSynth playback (Tone.Transport schedule)
 - [x] Add sequencer data model + transport scheduling
 - [x] Add sequencer velocity + accent UI
 - [x] Add sequencer pattern save/load (localStorage)
-- [x] Add QWERTY keyboard input for SubSynth
 - [x] Add sequencer copy/paste + randomize tools
 - [x] Add click-drag velocity editing
-- [x] Add hold/sustain mode for keyboard input
 - [x] Add velocity tooltips + value display
 - [x] Add per-step probability controls
 - [x] Add pattern A/B/C/D slots
 
-## Extended
+### 1.5 Extended Sequencer Features
 - [x] Add transport swing control
 - [x] Add transport humanize control
 - [x] Add per-step gate length editing
@@ -79,3 +83,332 @@
 - [x] Add per-row FX sends (delay/reverb)
 - [x] Add pattern library tagging + search
 - [x] Add groove templates (swing/humanize presets)
+
+---
+
+## Phase 2: The Rack System (Next Up)
+
+### 2.1 Machine Architecture
+- [ ] Design base Machine abstract class
+- [ ] Create Machine Registry/Factory pattern
+- [ ] Build Machine Rack container component
+- [ ] Implement add/remove machines (max 14)
+- [ ] Create machine selector UI
+- [ ] Add machine reordering (drag & drop)
+- [ ] Build machine clone/duplicate function
+- [ ] Implement machine mute/solo per machine
+
+### 2.2 PCMSynth (Sampler)
+- [ ] Build Tone.Sampler wrapper
+- [ ] Create sample library browser
+- [ ] Implement drag-drop WAV file upload
+- [ ] Add sample mapping across keyboard
+- [ ] Build playback controls (loop, reverse, pitch)
+- [ ] Create ADSR for amplitude
+- [ ] Add filter section
+- [ ] Support SoundFont (.sf2) import
+- [ ] Build sample editor (trim, normalize)
+
+### 2.3 BeatBox (Drum Machine)
+- [ ] Create 8-channel Tone.Players
+- [ ] Build 8-track step sequencer UI
+- [ ] Load default drum kit samples
+- [ ] Implement sample assignment per pad
+- [ ] Add individual channel controls (volume, pan, tune)
+- [ ] Create swing/humanize function
+- [ ] Build pattern variations (A/B/C/D)
+- [ ] Add drum pad trigger interface
+
+### 2.4 FMSynth
+- [ ] Implement Tone.FMSynth (3-operator)
+- [ ] Create modulation matrix UI
+- [ ] Add algorithm selector
+- [ ] Build envelope per operator
+- [ ] Add feedback controls
+
+### 2.5 BassLine
+- [ ] Create acid-style monosynth
+- [ ] Implement slide/glide between notes
+- [ ] Add accent controls
+- [ ] Build filter with resonance
+- [ ] Create pattern-based sequencer
+
+---
+
+## Phase 3: Effects & Mixing
+
+### 3.1 Effects Rack System
+- [ ] Design effects slot architecture
+- [ ] Create effect selector dropdown
+- [ ] Build base Effect abstract class
+- [ ] Implement serial effects routing
+- [ ] Add effect bypass/mute buttons
+- [ ] Create preset system for effects
+- [ ] Build Distortion effect (overdrive, fuzz, bitcrusher)
+- [ ] Build Filter effect (lowpass, highpass, bandpass)
+- [ ] Build Delay effect (time, feedback, filter)
+- [ ] Build Reverb effect (room, hall, plate)
+- [ ] Build Chorus effect (depth, rate, mix)
+- [ ] Build Phaser effect (stages, frequency, feedback)
+- [ ] Build Compressor effect (threshold, ratio, attack, release)
+- [ ] Build EQ effect (3-band parametric)
+
+### 3.2 Mixer Desk
+- [ ] Create mixer channel strip component
+- [ ] Implement fader controls (volume)
+- [ ] Add pan knobs
+- [ ] Build mute/solo logic (with exclusive solo)
+- [ ] Create VU meters per channel
+- [ ] Add channel naming/coloring
+- [ ] Build send effects (global delay/reverb)
+- [ ] Implement stereo width control
+- [ ] Create mixer automation recording
+
+### 3.3 Master Section
+- [ ] Build master effect slots (4 slots)
+- [ ] Create parametric EQ (low/mid/high)
+- [ ] Implement brick-wall limiter
+- [ ] Add master volume control
+- [ ] Build spectrum analyzer visualization
+- [ ] Create stereo width meter
+- [ ] Add master compressor option
+
+---
+
+## Phase 4: Song Arrangement
+
+### 4.1 Song Sequencer
+- [ ] Create timeline/arrangement view
+- [ ] Build pattern block system
+- [ ] Implement pattern drag & drop to timeline
+- [ ] Add pattern repeat/loop functionality
+- [ ] Create section markers (intro, verse, chorus, etc.)
+- [ ] Build timeline zoom controls
+- [ ] Add pattern variations per machine
+- [ ] Implement song length/bar count
+
+### 4.2 Automation System
+- [ ] Design automation lane UI
+- [ ] Create automation recording mode
+- [ ] Build automation curve editor
+- [ ] Implement automation playback
+- [ ] Add automation per parameter
+- [ ] Create automation lane visibility toggle
+- [ ] Build automation copy/paste
+- [ ] Add automation curve shapes (linear, exponential)
+
+---
+
+## Phase 5: Advanced Features
+
+### 5.1 Piano Roll Editor
+- [ ] Build piano roll grid component
+- [ ] Implement note drawing/erasing
+- [ ] Add note selection and multi-select
+- [ ] Create note resizing (duration)
+- [ ] Build velocity editing per note
+- [ ] Add quantize function
+- [ ] Implement snap-to-grid options
+- [ ] Create note transpose tools
+- [ ] Add scale/chord helpers
+
+### 5.2 Sample Management System
+- [ ] Build sample browser UI
+- [ ] Create sample categories/tags
+- [ ] Implement sample search
+- [ ] Add waveform preview
+- [ ] Build sample upload system
+- [ ] Create sample favorites/collections
+- [ ] Add sample metadata editor
+- [ ] Implement sample sharing (export/import)
+
+### 5.3 Preset Management
+- [ ] Design preset data structure
+- [ ] Create preset browser per machine
+- [ ] Build preset save/load UI
+- [ ] Implement preset categories
+- [ ] Add preset search/filter
+- [ ] Create default preset library
+- [ ] Build preset import/export
+- [ ] Add preset sharing functionality
+
+### 5.4 Web MIDI Support
+- [ ] Implement Web MIDI API connection
+- [ ] Create MIDI device manager
+- [ ] Build MIDI learn functionality
+- [ ] Add MIDI mapping per parameter
+- [ ] Create MIDI keyboard input for machines
+- [ ] Implement MIDI CC automation recording
+- [ ] Build MIDI clock sync (in/out)
+
+---
+
+## Phase 6: AI Integration
+
+### 6.1 AI Sound Generation
+- [ ] Integrate ElevenLabs Sound Effects API
+- [ ] Build text-to-sound UI
+- [ ] Create sound description templates
+- [ ] Implement direct-to-sampler loading
+- [ ] Add AI sound library/history
+- [ ] Create sound variation generator
+- [ ] Build style transfer for sounds
+
+### 6.2 AI Pattern Generation
+- [ ] Integrate with pattern generation AI
+- [ ] Build pattern prompt UI
+- [ ] Create style/genre selectors
+- [ ] Implement direct-to-sequencer loading
+- [ ] Add pattern variation generator
+- [ ] Build pattern "humanize" function
+- [ ] Create pattern completion assistant
+
+### 6.3 AI Mixing Assistant
+- [ ] Build mix analysis system
+- [ ] Create mixing suggestion engine
+- [ ] Implement auto-EQ suggestions
+- [ ] Add level balancing assistant
+- [ ] Build frequency conflict detector
+- [ ] Create stereo field optimizer
+
+---
+
+## Phase 7: Backend & Cloud
+
+### 7.1 Laravel Backend Setup
+- [ ] Initialize Laravel 12 project
+- [ ] Set up Sanctum authentication
+- [ ] Create User model and auth
+- [ ] Build project storage system
+- [ ] Implement preset sharing API
+- [ ] Create sample library API
+- [ ] Add collaboration endpoints
+- [ ] Set up file storage (S3/DigitalOcean Spaces)
+
+### 7.2 User Authentication
+- [ ] Build login/register UI
+- [ ] Implement JWT/Sanctum integration
+- [ ] Create password reset flow
+- [ ] Add social auth (Google, GitHub)
+- [ ] Build user profile management
+- [ ] Create subscription/billing system (Stripe)
+- [ ] Add usage tracking/analytics
+
+### 7.3 Project Cloud Sync
+- [ ] Build project serialization
+- [ ] Implement auto-save system
+- [ ] Create project versioning
+- [ ] Add project sharing/collaboration
+- [ ] Build project browser UI
+- [ ] Create project templates
+- [ ] Add project export (as ZIP)
+
+### 7.4 Sample Library Backend
+- [ ] Build sample upload API
+- [ ] Create sample CDN integration
+- [ ] Implement sample transcoding
+- [ ] Add sample metadata extraction
+- [ ] Build sample search API
+- [ ] Create sample packs system
+- [ ] Add sample licensing/attribution
+
+---
+
+## Phase 8: Collaboration Features
+
+### 8.1 Real-time Collaboration
+- [ ] Set up WebSocket server (Laravel Reverb)
+- [ ] Implement presence channels
+- [ ] Build real-time state sync
+- [ ] Create cursor/selection sharing
+- [ ] Add chat system
+- [ ] Implement conflict resolution
+- [ ] Build session management
+- [ ] Create invite/permission system
+
+### 8.2 Project Sharing & Community
+- [ ] Build public project gallery
+- [ ] Create project commenting system
+- [ ] Add like/favorite functionality
+- [ ] Implement follow/follower system
+- [ ] Build remix/fork functionality
+- [ ] Create collaborative playlists
+- [ ] Add project challenges/competitions
+
+---
+
+## Phase 9: Export & Integration
+
+### 9.1 Audio Export
+- [ ] Implement offline audio rendering
+- [ ] Add WAV export (16/24/32-bit)
+- [ ] Create MP3 export with quality settings
+- [ ] Add FLAC lossless export
+- [ ] Implement stem export (per machine)
+- [ ] Create mixdown presets
+- [ ] Add metadata embedding (ID3 tags)
+- [ ] Build export queue system
+
+### 9.2 MIDI Export
+- [ ] Implement MIDI file export (.mid)
+- [ ] Create multi-track MIDI export
+- [ ] Add tempo map export
+- [ ] Build MIDI CC automation export
+- [ ] Create MIDI import functionality
+
+### 9.3 Project Export
+- [ ] Create project bundle format (.synthwave)
+- [ ] Implement project export with samples
+- [ ] Add project import from bundle
+- [ ] Build legacy Caustic import (if possible)
+- [ ] Create project converter tools
+
+---
+
+## Phase 10: Polish & Launch
+
+### 10.1 Performance Optimization
+- [ ] Profile audio thread performance
+- [ ] Optimize re-renders with React.memo
+- [ ] Implement virtual scrolling for large lists
+- [ ] Add Web Worker for heavy computation
+- [ ] Optimize bundle size (code splitting)
+- [ ] Add loading states and skeletons
+- [ ] Implement progressive loading
+- [ ] Create performance monitoring
+
+### 10.2 Mobile/Tablet Support
+- [ ] Create responsive layouts
+- [ ] Build touch gesture controls
+- [ ] Optimize knob/fader touch input
+- [ ] Add on-screen keyboard for tablets
+- [ ] Create mobile-specific UI patterns
+- [ ] Test on iOS/Android devices
+- [ ] Optimize for smaller screens
+
+### 10.3 Documentation & Tutorials
+- [ ] Write user manual
+- [ ] Create video tutorials
+- [ ] Build interactive onboarding
+- [ ] Add tooltips and help system
+- [ ] Create keyboard shortcut guide
+- [ ] Build example projects library
+- [ ] Add contextual help
+
+### 10.4 Testing & QA
+- [ ] Create integration tests (Cypress)
+- [ ] Test audio accuracy
+- [ ] Perform cross-browser testing
+- [ ] Conduct user acceptance testing
+- [ ] Fix critical bugs
+- [ ] Perform security audit
+
+### 10.5 Launch Preparation
+- [ ] Set up production infrastructure
+- [ ] Configure CDN (Cloudflare)
+- [ ] Implement monitoring (Sentry)
+- [ ] Create landing page
+- [ ] Build email marketing campaign
+- [ ] Prepare press kit
+- [ ] Set up social media accounts
+- [ ] Create launch video/demo
