@@ -53,6 +53,7 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
     setChannelSampleName,
     currentSlot,
     slots,
+    setSlots,
     setSlot,
     saveToSlot,
     loadPattern,
