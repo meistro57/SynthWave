@@ -133,6 +133,11 @@ function centsToFrequency(cents: number) {
   return 8.176 * Math.pow(2, cents / 1200);
 }
 
+function toMidiNote(note: string): Tone.Unit.MidiNote {
+  const midi = Math.round(Tone.Frequency(note).toMidi());
+  return Math.max(0, Math.min(127, midi)) as Tone.Unit.MidiNote;
+}
+
 function getChannelDataFromSample(
   sample: Sample,
   offsets: { start: number; end: number; startLoop: number; endLoop: number },
@@ -426,7 +431,7 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
     loopEnd?: number,
   ) => {
     await ensureReady();
-    await addPCMSample(note, buffer);
+    await addPCMSample(toMidiNote(note), buffer);
     const entry: SampleEntry = {
       id: createId(),
       name,
@@ -509,7 +514,7 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
     const start = clamp(editor.start, 0, selectedSample.duration);
     const end = clamp(editor.end, start + 0.01, selectedSample.duration);
     const trimmed = trimBuffer(selectedSample.buffer, start, end);
-    await addPCMSample(selectedSample.note, trimmed);
+    await addPCMSample(toMidiNote(selectedSample.note), trimmed);
     setSamples((prev) =>
       prev.map((entry) =>
         entry.id === selectedSample.id
@@ -522,7 +527,7 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
   const applyNormalize = async () => {
     if (!selectedSample) return;
     const normalized = normalizeBuffer(selectedSample.buffer);
-    await addPCMSample(selectedSample.note, normalized);
+    await addPCMSample(toMidiNote(selectedSample.note), normalized);
     setSamples((prev) =>
       prev.map((entry) =>
         entry.id === selectedSample.id
@@ -534,7 +539,7 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
 
   const resetSample = async () => {
     if (!selectedSample) return;
-    await addPCMSample(selectedSample.note, selectedSample.original);
+    await addPCMSample(toMidiNote(selectedSample.note), selectedSample.original);
     setSamples((prev) =>
       prev.map((entry) =>
         entry.id === selectedSample.id
@@ -547,7 +552,7 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
   const updateSampleNote = async (sampleId: string, note: string) => {
     const target = samples.find((entry) => entry.id === sampleId);
     if (!target) return;
-    await addPCMSample(note, target.buffer);
+    await addPCMSample(toMidiNote(note), target.buffer);
     setSamples((prev) => prev.map((entry) => (entry.id === sampleId ? { ...entry, note } : entry)));
   };
 
