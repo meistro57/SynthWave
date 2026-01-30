@@ -247,12 +247,12 @@ abstract class Machine {
 **Goal:** 2 effects per machine + master effects
 
 **Tasks:**
-- [ ] Design effects slot architecture
-- [ ] Create effect selector dropdown
-- [ ] Build base Effect abstract class
-- [ ] Implement serial effects routing
-- [ ] Add effect bypass/mute buttons
-- [ ] Create preset system for effects
+- [x] Design effects slot architecture
+- [x] Create effect selector dropdown
+- [x] Build base Effect abstract class
+- [x] Implement serial effects routing
+- [x] Add effect bypass/mute buttons
+- [x] Create preset system for effects
 
 **Core Effects to Build:**
 1. **Distortion** - Overdrive, fuzz, bitcrusher
@@ -275,15 +275,15 @@ abstract class Machine {
 **Goal:** Professional mixing interface
 
 **Tasks:**
-- [ ] Create mixer channel strip component
-- [ ] Implement fader controls (volume)
-- [ ] Add pan knobs
-- [ ] Build mute/solo logic (with exclusive solo)
-- [ ] Create VU meters per channel
-- [ ] Add channel naming/coloring
-- [ ] Build send effects (global delay/reverb)
-- [ ] Implement stereo width control
-- [ ] Create mixer automation recording
+- [x] Create mixer channel strip component
+- [x] Implement fader controls (volume)
+- [x] Add pan knobs
+- [x] Build mute/solo logic (with exclusive solo)
+- [x] Create VU meters per channel
+- [x] Add channel naming/coloring
+- [x] Build send effects (global delay/reverb)
+- [x] Implement stereo width control
+- [x] Create mixer automation recording
 
 **Mixer UI:**
 ```jsx
@@ -317,13 +317,13 @@ abstract class Machine {
 **Goal:** Final output processing
 
 **Tasks:**
-- [ ] Build master effect slots (4 slots)
-- [ ] Create parametric EQ (low/mid/high)
-- [ ] Implement brick-wall limiter
-- [ ] Add master volume control
-- [ ] Build spectrum analyzer visualization
-- [ ] Create stereo width meter
-- [ ] Add master compressor option
+- [x] Build master effect slots (4 slots)
+- [x] Create parametric EQ (low/mid/high)
+- [x] Implement brick-wall limiter
+- [x] Add master volume control
+- [x] Build spectrum analyzer visualization
+- [x] Create stereo width meter
+- [x] Add master compressor option
 
 **Deliverables:**
 - Mastering-grade output section

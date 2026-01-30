@@ -1,7 +1,7 @@
 import * as Tone from "tone";
 
 import { getDelaySend, getReverbSend, initAudioEngine } from "@/audio/audioEngine";
-import { routeToMaster } from "@/audio/routing";
+import { routeToMachineEffects } from "@/audio/routing";
 
 export type FMSynthEnvelope = {
   attack: number;
@@ -94,7 +94,7 @@ function ensureGraph() {
     carrierGain.connect(panner);
     panner.connect(getDelaySend());
     panner.connect(getReverbSend());
-    routeToMaster(panner);
+    routeToMachineEffects("fmsynth", panner);
 
     const [op1, op2, op3] = operators;
     op1.outputs[0].connect(op2.osc.frequency);

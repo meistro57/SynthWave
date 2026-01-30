@@ -33,16 +33,30 @@ class MockLimiter extends MockToneAudioNode {
   }
 }
 
+class MockCompressor extends MockToneAudioNode {
+  threshold = { value: -18 };
+  ratio = { value: 3 };
+  attack = { value: 0.01 };
+  release = { value: 0.2 };
+  constructor(threshold?: number, ratio?: number) {
+    super();
+    if (threshold !== undefined) this.threshold.value = threshold;
+    if (ratio !== undefined) this.ratio.value = ratio;
+  }
+}
+
 class MockMeter extends MockToneAudioNode {
   normalRange: boolean;
   smoothing: number;
+  channels: number;
   constructor(options?: { normalRange?: boolean; smoothing?: number }) {
     super();
     this.normalRange = options?.normalRange ?? true;
     this.smoothing = options?.smoothing ?? 0.8;
+    this.channels = (options as { channels?: number } | undefined)?.channels ?? 1;
   }
   getValue() {
-    return -60;
+    return this.channels > 1 ? [-30, -30] : -60;
   }
 }
 
@@ -78,6 +92,37 @@ class MockFilter extends MockToneAudioNode {
     if (options?.frequency !== undefined) this.frequency.value = options.frequency;
     if (options?.Q !== undefined) this.Q.value = options.Q;
     if (options?.type) this.type = options.type;
+  }
+}
+
+class MockEQ3 extends MockToneAudioNode {
+  low = { value: 0 };
+  mid = { value: 0 };
+  high = { value: 0 };
+  constructor(low?: number, mid?: number, high?: number) {
+    super();
+    if (low !== undefined) this.low.value = low;
+    if (mid !== undefined) this.mid.value = mid;
+    if (high !== undefined) this.high.value = high;
+  }
+}
+
+class MockFFT extends MockToneAudioNode {
+  size: number;
+  constructor(size?: number) {
+    super();
+    this.size = size ?? 32;
+  }
+  getValue() {
+    return Array.from({ length: this.size }, () => -60);
+  }
+}
+
+class MockStereoWidener extends MockToneAudioNode {
+  width = 0.5;
+  constructor(width?: number) {
+    super();
+    if (width !== undefined) this.width = width;
   }
 }
 
@@ -250,10 +295,14 @@ module.exports = {
   // Classes
   Gain: MockGain,
   Limiter: MockLimiter,
+  Compressor: MockCompressor,
   Meter: MockMeter,
+  FFT: MockFFT,
   FeedbackDelay: MockFeedbackDelay,
   Reverb: MockReverb,
   Filter: MockFilter,
+  EQ3: MockEQ3,
+  StereoWidener: MockStereoWidener,
   AmplitudeEnvelope: MockAmplitudeEnvelope,
   Panner: MockPanner,
   MonoSynth: MockMonoSynth,

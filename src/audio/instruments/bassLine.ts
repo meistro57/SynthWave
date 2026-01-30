@@ -1,7 +1,7 @@
 import * as Tone from "tone";
 
 import { getDelaySend, getReverbSend, initAudioEngine } from "@/audio/audioEngine";
-import { routeToMaster } from "@/audio/routing";
+import { routeToMachineEffects } from "@/audio/routing";
 
 export type BassLineEnvelope = {
   attack: number;
@@ -104,7 +104,7 @@ export async function initBassLine() {
     gain.connect(panner);
     panner.connect(getDelaySend());
     panner.connect(getReverbSend());
-    routeToMaster(panner);
+    routeToMachineEffects("bassline", panner);
     connected = true;
   }
 
@@ -120,6 +120,12 @@ export function setBassLineOutputGain(level: number) {
   pendingGain = Math.max(0, Math.min(1, level));
   if (!bassGain) return;
   bassGain.gain.value = pendingGain;
+}
+
+export function setBassLinePan(pan: number) {
+  pendingPan = Math.max(-1, Math.min(1, pan));
+  if (!bassPanner) return;
+  bassPanner.pan.value = pendingPan;
 }
 
 export async function triggerBassLine(

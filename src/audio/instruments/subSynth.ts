@@ -1,7 +1,7 @@
 import * as Tone from "tone";
 
 import { getDelaySend, getReverbSend, initAudioEngine } from "@/audio/audioEngine";
-import { routeToMaster } from "@/audio/routing";
+import { routeToMachineEffects } from "@/audio/routing";
 
 export type SubSynthEnvelope = {
   attack: number;
@@ -69,7 +69,7 @@ export async function initSubSynth() {
     gain.connect(subSynthPanner);
     subSynthPanner.connect(getDelaySend());
     subSynthPanner.connect(getReverbSend());
-    routeToMaster(subSynthPanner);
+    routeToMachineEffects("subsynth", subSynthPanner);
     connected = true;
   }
   return synth;

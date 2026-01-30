@@ -1,7 +1,7 @@
 import * as Tone from "tone";
 
 import { getDelaySend, getReverbSend, initAudioEngine } from "@/audio/audioEngine";
-import { routeToMaster } from "@/audio/routing";
+import { routeToMachineEffects } from "@/audio/routing";
 
 export type PCMSynthEnvelope = {
   attack: number;
@@ -128,7 +128,7 @@ export async function initPCMSynth() {
     gain.connect(panner);
     panner.connect(getDelaySend());
     panner.connect(getReverbSend());
-    routeToMaster(panner);
+    routeToMachineEffects("pcmsynth", panner);
     connected = true;
   }
 

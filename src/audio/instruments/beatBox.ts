@@ -1,7 +1,7 @@
 import * as Tone from "tone";
 
 import { getDelaySend, getReverbSend, initAudioEngine } from "@/audio/audioEngine";
-import { routeToMaster } from "@/audio/routing";
+import { routeToMachineEffects } from "@/audio/routing";
 
 const CHANNEL_COUNT = 8;
 
@@ -20,12 +20,14 @@ type BeatBoxChannel = {
 
 let channels: BeatBoxChannel[] | null = null;
 let masterGain: Tone.Gain | null = null;
+let masterPanner: Tone.Panner | null = null;
 const pendingVolumes = Array.from({ length: CHANNEL_COUNT }, () => 0.9);
 const pendingPans = Array.from({ length: CHANNEL_COUNT }, () => 0);
 const pendingTunes = Array.from({ length: CHANNEL_COUNT }, () => 0);
 const pendingDelaySends = Array.from({ length: CHANNEL_COUNT }, () => 0.2);
 const pendingReverbSends = Array.from({ length: CHANNEL_COUNT }, () => 0.2);
 let pendingMasterGain = 1;
+let pendingMasterPan = 0;
 
 function createBuffer(lengthSeconds: number, render: (data: Float32Array, sampleRate: number) => void) {
   const context = Tone.getContext().rawContext;
@@ -132,7 +134,11 @@ function ensureBeatBox() {
   if (!channels) {
     if (!masterGain) {
       masterGain = new Tone.Gain(pendingMasterGain);
-      routeToMaster(masterGain);
+    }
+    if (!masterPanner) {
+      masterPanner = new Tone.Panner(pendingMasterPan);
+      masterGain.connect(masterPanner);
+      routeToMachineEffects("beatbox", masterPanner);
     }
     channels = Array.from({ length: CHANNEL_COUNT }, () => {
       const player = new Tone.Player();
@@ -158,6 +164,8 @@ function ensureBeatBox() {
     channel.delaySend.gain.value = pendingDelaySends[index];
     channel.reverbSend.gain.value = pendingReverbSends[index];
   });
+  if (masterGain) masterGain.gain.value = pendingMasterGain;
+  if (masterPanner) masterPanner.pan.value = pendingMasterPan;
 
   return channels;
 }
@@ -213,12 +221,20 @@ export function disposeBeatBox() {
   channels = null;
   masterGain?.dispose();
   masterGain = null;
+  masterPanner?.dispose();
+  masterPanner = null;
 }
 
 export function setBeatBoxOutputGain(level: number) {
   pendingMasterGain = Math.max(0, Math.min(1, level));
   if (!masterGain) return;
   masterGain.gain.value = pendingMasterGain;
+}
+
+export function setBeatBoxPan(pan: number) {
+  pendingMasterPan = Math.max(-1, Math.min(1, pan));
+  if (!masterPanner) return;
+  masterPanner.pan.value = pendingMasterPan;
 }
 
 export function setBeatBoxChannelDelaySend(index: number, level: number) {

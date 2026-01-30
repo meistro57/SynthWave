@@ -1,4 +1,7 @@
 import { AudioTest } from "./_components/AudioTest";
+import { EffectsRack } from "./_components/EffectsRack";
+import { MasterSection } from "./_components/MasterSection";
+import { MixerDesk } from "./_components/MixerDesk";
 import { MachineRack } from "./_components/MachineRack";
 import { MasterMeter } from "./_components/MasterMeter";
 import { StepSequencer } from "./_components/StepSequencer";
@@ -31,6 +34,12 @@ export default function Home() {
         </div>
 
         <StepSequencer />
+
+        <EffectsRack />
+
+        <MixerDesk />
+
+        <MasterSection />
       </main>
     </div>
   );
