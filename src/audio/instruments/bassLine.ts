@@ -3,6 +3,29 @@ import * as Tone from "tone";
 import { getDelaySend, getReverbSend, initAudioEngine } from "@/audio/audioEngine";
 import { routeToMachineEffects } from "@/audio/routing";
 
+const toMonoOscType = (type: string | undefined) => {
+  switch (type) {
+    case "sine":
+    case "triangle":
+      return type;
+    case "square":
+      return "square2";
+    case "sawtooth":
+      return "sawtooth2";
+    case "square2":
+    case "sawtooth2":
+    case "pulse":
+    case "pwm":
+    case "fatsine":
+    case "fatsquare":
+    case "fatsawtooth":
+    case "fattriangle":
+      return type;
+    default:
+      return "sawtooth2";
+  }
+};
+
 export type BassLineEnvelope = {
   attack: number;
   decay: number;
@@ -39,7 +62,7 @@ let pendingPan = 0;
 function ensureSynth() {
   if (!bassSynth) {
     bassSynth = new Tone.MonoSynth({
-      oscillator: { type: pendingSettings.oscillator },
+      oscillator: { type: toMonoOscType(pendingSettings.oscillator) },
       envelope: pendingSettings.envelope,
     });
   }
@@ -74,7 +97,7 @@ function ensurePanner() {
 function applySettings() {
   if (!bassSynth) return;
   bassSynth.set({
-    oscillator: { type: pendingSettings.oscillator },
+    oscillator: { type: toMonoOscType(pendingSettings.oscillator) },
     envelope: pendingSettings.envelope,
   } as Partial<Tone.MonoSynthOptions>);
 

@@ -3,6 +3,29 @@ import * as Tone from "tone";
 import { getDelaySend, getReverbSend, initAudioEngine } from "@/audio/audioEngine";
 import { routeToMachineEffects } from "@/audio/routing";
 
+const toMonoOscType = (type: string | undefined) => {
+  switch (type) {
+    case "sine":
+    case "triangle":
+      return type;
+    case "square":
+      return "square2";
+    case "sawtooth":
+      return "sawtooth2";
+    case "square2":
+    case "sawtooth2":
+    case "pulse":
+    case "pwm":
+    case "fatsine":
+    case "fatsquare":
+    case "fatsawtooth":
+    case "fattriangle":
+      return type;
+    default:
+      return "sawtooth2";
+  }
+};
+
 export type SubSynthEnvelope = {
   attack: number;
   decay: number;
@@ -47,7 +70,7 @@ function ensureSubSynthGain() {
 
 function applyParams(synth: Tone.MonoSynth, params: Omit<SubSynthPreset, "name">) {
   synth.set({
-    oscillator: { type: params.oscillator as Tone.ToneOscillatorType & string },
+    oscillator: { type: toMonoOscType(params.oscillator) },
     envelope: params.envelope,
     filter: { frequency: params.filter.frequency, Q: params.filter.resonance },
   } as Partial<Tone.MonoSynthOptions>);
