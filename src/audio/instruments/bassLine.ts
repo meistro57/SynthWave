@@ -39,7 +39,7 @@ let pendingPan = 0;
 function ensureSynth() {
   if (!bassSynth) {
     bassSynth = new Tone.MonoSynth({
-      oscillator: { type: pendingSettings.oscillator as string },
+      oscillator: { type: pendingSettings.oscillator },
       envelope: pendingSettings.envelope,
     });
   }
@@ -74,7 +74,7 @@ function ensurePanner() {
 function applySettings() {
   if (!bassSynth) return;
   bassSynth.set({
-    oscillator: { type: pendingSettings.oscillator as string },
+    oscillator: { type: pendingSettings.oscillator },
     envelope: pendingSettings.envelope,
   } as Partial<Tone.MonoSynthOptions>);
 
