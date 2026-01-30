@@ -148,7 +148,9 @@ function ensureBeatBox() {
       const reverbSend = new Tone.Gain(0);
       player.connect(gain);
       gain.connect(panner);
-      panner.connect(masterGain);
+      if (masterGain) {
+        panner.connect(masterGain);
+      }
       panner.connect(delaySend);
       panner.connect(reverbSend);
       delaySend.connect(getDelaySend());
