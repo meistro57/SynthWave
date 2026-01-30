@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type * as Tone from "tone";
 
 import { getMasterMeter } from "@/audio/audioEngine";
 
@@ -10,21 +11,24 @@ function clamp(value: number, min: number, max: number) {
 
 export function MasterMeter() {
   const [dbLevel, setDbLevel] = useState(-Infinity);
-  const meter = useMemo(() => getMasterMeter(), []);
+  const meterRef = useRef<Tone.Meter | null>(null);
 
   useEffect(() => {
+    meterRef.current = getMasterMeter();
     let rafId = 0;
 
     const update = () => {
-      const value = meter.getValue();
-      const level = Array.isArray(value) ? value[0] : value;
-      setDbLevel(level);
+      if (meterRef.current) {
+        const value = meterRef.current.getValue();
+        const level = Array.isArray(value) ? value[0] : value;
+        setDbLevel(level);
+      }
       rafId = window.requestAnimationFrame(update);
     };
 
     rafId = window.requestAnimationFrame(update);
     return () => window.cancelAnimationFrame(rafId);
-  }, [meter]);
+  }, []);
 
   const normalized = clamp((dbLevel + 60) / 60, 0, 1);
 

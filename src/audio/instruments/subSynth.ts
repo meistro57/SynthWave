@@ -38,10 +38,10 @@ function ensureSubSynth() {
 
 function applyParams(synth: Tone.MonoSynth, params: Omit<SubSynthPreset, "name">) {
   synth.set({
-    oscillator: { type: params.oscillator },
+    oscillator: { type: params.oscillator as Tone.ToneOscillatorType & string },
     envelope: params.envelope,
     filter: { frequency: params.filter.frequency, Q: params.filter.resonance },
-  });
+  } as Partial<Tone.MonoSynthOptions>);
 }
 
 export async function initSubSynth() {
