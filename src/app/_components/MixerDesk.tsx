@@ -148,7 +148,7 @@ function MixerChannelStrip({
   onSolo,
   onChange,
 }: {
-  channel: ReturnType<typeof useMixerStore.getState>()["channels"][number];
+  channel: ReturnType<typeof useMixerStore.getState>["channels"][number];
   onMute: () => void;
   onSolo: () => void;
   onChange: (patch: Partial<typeof channel>) => void;
