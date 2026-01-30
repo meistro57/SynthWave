@@ -16,6 +16,8 @@ SynthWave is a zero-install, cross-platform music production environment that co
 
 <img width="922" height="506" alt="image" src="https://github.com/user-attachments/assets/d1024d1e-2ae0-4380-ba43-1acb9dd7f2f9" />
 
+<img width="916" height="1938" alt="image" src="https://github.com/user-attachments/assets/b37d07d5-7779-47fc-94b7-0ba710b35ba5" />
+
 ---
 
 ## ✨ Features
