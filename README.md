@@ -70,24 +70,46 @@ SynthWave is a zero-install, cross-platform music production environment that co
 
 ### Prerequisites
 
-- **Node.js** 20+ and pnpm
+- **Node.js** 20+
+- **Package manager:** npm (default) or pnpm
 - **Modern Browser** (Chrome 120+, Firefox 120+, Safari 17+)
 - **Web Audio API Support** (automatically detected)
 
-### Quick Start
+### Quick Start (Beginner Friendly)
+
+If this is your first time running a web project, follow these steps exactly:
+
+1) **Install Node.js 20+**
+   - Download from the official site, then restart your terminal.
+
+2) **Clone the repo**
 
 ```bash
-# Clone the repository
 git clone https://github.com/meistro57/SynthWave.git
 cd SynthWave
+```
 
-# Install dependencies
+3) **Install dependencies**
+
+```bash
+npm install
+```
+
+4) **Start the dev server**
+
+```bash
+npm run dev
+```
+
+5) **Open the app**
+   - Visit `http://localhost:3000` in your browser.
+
+### Quick Start (pnpm users)
+
+```bash
 pnpm install
 
-# Start development server
 pnpm dev
-
-# Open http://localhost:3000 in your browser
 ```
 
 ### Backend Setup (Optional for Development)
