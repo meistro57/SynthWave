@@ -13,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">{children}</body>
+      <body className="theme-scrollbar font-sans antialiased">{children}</body>
     </html>
   );
 }

@@ -52,6 +52,10 @@ let connected = false;
 let pendingParams: Omit<SubSynthPreset, "name"> | null = null;
 let pendingPan = 0;
 let pendingGain = 1;
+let lastSubSynthStartTimeSec: number | null = null;
+
+const MIN_START_SEPARATION_SEC = 0.0001;
+const SUBSYNTH_OUTPUT_BOOST = 1.6;
 
 function ensureSubSynth() {
   if (!subSynth) {
@@ -63,7 +67,7 @@ function ensureSubSynth() {
 
 function ensureSubSynthGain() {
   if (!subSynthGain) {
-    subSynthGain = new Tone.Gain(pendingGain);
+    subSynthGain = new Tone.Gain(pendingGain * SUBSYNTH_OUTPUT_BOOST);
   }
   return subSynthGain;
 }
@@ -74,6 +78,19 @@ function applyParams(synth: Tone.MonoSynth, params: Omit<SubSynthPreset, "name">
     envelope: params.envelope,
     filter: { frequency: params.filter.frequency, Q: params.filter.resonance },
   } as Partial<Tone.MonoSynthOptions>);
+}
+
+function coerceSubSynthStartTime(time?: Tone.Unit.Time) {
+  if (time === undefined) return undefined;
+  const seconds = Tone.Time(time).toSeconds();
+  if (!Number.isFinite(seconds)) return time;
+  const now = Tone.now();
+  let nextTime = Math.max(seconds, now);
+  if (lastSubSynthStartTimeSec !== null && nextTime <= lastSubSynthStartTimeSec) {
+    nextTime = lastSubSynthStartTimeSec + MIN_START_SEPARATION_SEC;
+  }
+  lastSubSynthStartTimeSec = nextTime;
+  return nextTime;
 }
 
 export async function initSubSynth() {
@@ -105,7 +122,7 @@ export async function triggerSubSynth(
   velocity = 0.8,
 ) {
   const synth = await initSubSynth();
-  synth.triggerAttackRelease(note, duration, time, velocity);
+  synth.triggerAttackRelease(note, duration, coerceSubSynthStartTime(time), velocity);
 }
 
 export async function triggerSubSynthAttack(
@@ -114,7 +131,7 @@ export async function triggerSubSynthAttack(
   velocity = 0.8,
 ) {
   const synth = await initSubSynth();
-  synth.triggerAttack(note, time, velocity);
+  synth.triggerAttack(note, coerceSubSynthStartTime(time), velocity);
 }
 
 export async function triggerSubSynthRelease(time?: Tone.Unit.Time) {
@@ -138,6 +155,7 @@ export function disposeSubSynth() {
   subSynthPanner = null;
   connected = false;
   pendingParams = null;
+  lastSubSynthStartTimeSec = null;
 }
 
 export function setSubSynthPan(pan: number) {
@@ -149,5 +167,5 @@ export function setSubSynthPan(pan: number) {
 export function setSubSynthOutputGain(level: number) {
   pendingGain = Math.max(0, Math.min(1, level));
   if (!subSynthGain) return;
-  subSynthGain.gain.value = pendingGain;
+  subSynthGain.gain.value = pendingGain * SUBSYNTH_OUTPUT_BOOST;
 }

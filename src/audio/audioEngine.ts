@@ -21,6 +21,7 @@ let masterCompressor: Tone.Compressor | null = null;
 let masterCompressorDry: Tone.Gain | null = null;
 let masterCompressorWet: Tone.Gain | null = null;
 let masterCompressorMix: Tone.Gain | null = null;
+let masterBoost: Tone.Gain | null = null;
 
 function ensureMasterChain() {
   if (!masterGain) {
@@ -60,6 +61,10 @@ function ensureMasterChain() {
     masterCompressorMix = new Tone.Gain(1);
   }
 
+  if (!masterBoost) {
+    masterBoost = new Tone.Gain(1.2);
+  }
+
   if (!masterConnected) {
     masterGain.connect(masterEQ);
     masterEQ.connect(masterEffects.input);
@@ -68,7 +73,8 @@ function ensureMasterChain() {
     masterCompressor.connect(masterCompressorWet);
     masterCompressorDry.connect(masterCompressorMix);
     masterCompressorWet.connect(masterCompressorMix);
-    masterCompressorMix.connect(masterLimiter);
+    masterCompressorMix.connect(masterBoost);
+    masterBoost.connect(masterLimiter);
     masterConnected = true;
   }
 
@@ -203,4 +209,10 @@ export function setMasterCompressorEnabled(enabled: boolean) {
   if (!masterCompressorDry || !masterCompressorWet) return;
   masterCompressorDry.gain.value = enabled ? 0 : 1;
   masterCompressorWet.gain.value = enabled ? 1 : 0;
+}
+
+export function setMasterBoost(level: number) {
+  ensureMasterChain();
+  if (!masterBoost) return;
+  masterBoost.gain.value = Math.max(0, Math.min(2, level));
 }

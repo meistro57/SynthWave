@@ -19,6 +19,22 @@ function formatBadge(text: string) {
   return text.toUpperCase();
 }
 
+function getMachineCardClasses(type: MachineType, isDragOver: boolean) {
+  const base = "rounded-2xl border p-4 transition";
+  const variants: Record<MachineType, { base: string; hover: string }> = {
+    subsynth: { base: "border-cyan-400/50 bg-cyan-500/20", hover: "border-cyan-300 bg-cyan-500/25" },
+    pcmsynth: {
+      base: "border-emerald-400/50 bg-emerald-500/20",
+      hover: "border-emerald-300 bg-emerald-500/25",
+    },
+    beatbox: { base: "border-amber-400/50 bg-amber-500/20", hover: "border-amber-300 bg-amber-500/25" },
+    fmsynth: { base: "border-violet-400/50 bg-violet-500/20", hover: "border-violet-300 bg-violet-500/25" },
+    bassline: { base: "border-rose-400/50 bg-rose-500/20", hover: "border-rose-300 bg-rose-500/25" },
+  };
+  const variant = variants[type] ?? { base: "border-slate-800 bg-slate-950/60", hover: "border-cyan-400 bg-cyan-500/10" };
+  return [base, isDragOver ? variant.hover : variant.base].join(" ");
+}
+
 export function MachineRack() {
   const {
     machines,
@@ -139,12 +155,7 @@ export function MachineRack() {
                 onDragOver={handleDragOver(machine.id)}
                 onDrop={handleDrop(machine.id)}
                 onDragEnd={handleDragEnd}
-                className={
-                  "rounded-2xl border p-4 transition " +
-                  (dragOverId === machine.id
-                    ? "border-cyan-400 bg-cyan-500/10"
-                    : "border-slate-800 bg-slate-950/60")
-                }
+                className={getMachineCardClasses(machine.type, dragOverId === machine.id)}
               >
                 <MachineRow
                   machine={machine}

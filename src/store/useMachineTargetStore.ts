@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type MachineTarget = "subsynth" | "pcmsynth" | "fmsynth" | "bassline";
+export type MachineTarget = "subsynth" | "pcmsynth" | "beatbox" | "fmsynth" | "bassline";
 
 export type MachineTargetState = {
   target: MachineTarget;

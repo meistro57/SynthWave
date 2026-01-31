@@ -5,6 +5,7 @@ import * as Tone from "tone";
 
 import { setDelaySendLevel, setReverbSendLevel } from "@/audio/audioEngine";
 import { triggerBassLine } from "@/audio/instruments/bassLine";
+import { triggerBeatBox } from "@/audio/instruments/beatBox";
 import { triggerFMSynth } from "@/audio/instruments/fmSynth";
 import { triggerPCMSynth } from "@/audio/instruments/pcmSynth";
 import { setSubSynthPan, triggerSubSynth } from "@/audio/instruments/subSynth";
@@ -42,7 +43,7 @@ type SequencerSettings = {
   rowPans: number[];
   rowDelaySends: number[];
   rowReverbSends: number[];
-  rowTargets: Array<"subsynth" | "pcmsynth" | "fmsynth" | "bassline">;
+  rowTargets: Array<"subsynth" | "pcmsynth" | "beatbox" | "fmsynth" | "bassline">;
   editMode: EditMode;
   slotAuto: Record<PatternSlot, boolean>;
   randomizeDensity: number;
@@ -384,10 +385,14 @@ export function StepSequencer() {
           for (let i = 0; i < ratchetCount; i += 1) {
             const ratchetTime = scheduledTime + i * subStep;
             const duration = Math.max(0.03, subStep * gateMultiplier);
+          setSubSynthPan(pan);
+          setDelaySendLevel(delaySend);
+          setReverbSendLevel(reverbSend);
+          if (rowTarget === "beatbox") {
+            const beatIndex = row % 8;
+            triggerBeatBox(beatIndex, ratchetTime, velocity * volume);
+          } else {
             const note = Tone.Frequency(currentNotes[row]).transpose(transpose).toNote();
-            setSubSynthPan(pan);
-            setDelaySendLevel(delaySend);
-            setReverbSendLevel(reverbSend);
             if (rowTarget === "subsynth") {
               triggerSubSynth(note, duration, ratchetTime, velocity * volume);
             } else if (rowTarget === "pcmsynth") {
@@ -399,6 +404,7 @@ export function StepSequencer() {
             }
           }
         }
+      }
       }
 
       Tone.Draw.schedule(() => {
@@ -716,12 +722,20 @@ export function StepSequencer() {
               onChange={(event) =>
                 useMachineTargetStore
                   .getState()
-                  .setTarget(event.target.value as "subsynth" | "pcmsynth" | "fmsynth" | "bassline")
+                  .setTarget(
+                    event.target.value as
+                      | "subsynth"
+                      | "pcmsynth"
+                      | "beatbox"
+                      | "fmsynth"
+                      | "bassline",
+                  )
               }
               className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-xs font-semibold text-slate-200"
             >
               <option value="subsynth">SubSynth</option>
               <option value="pcmsynth">PCMSynth</option>
+              <option value="beatbox">BeatBox</option>
               <option value="fmsynth">FMSynth</option>
               <option value="bassline">BassLine</option>
             </select>
@@ -933,6 +947,7 @@ export function StepSequencer() {
                         next[rowIndex] = event.target.value as
                           | "subsynth"
                           | "pcmsynth"
+                          | "beatbox"
                           | "fmsynth"
                           | "bassline";
                         setRowTargets(next);
@@ -942,6 +957,7 @@ export function StepSequencer() {
                     >
                       <option value="subsynth">Sub</option>
                       <option value="pcmsynth">PCM</option>
+                      <option value="beatbox">Beat</option>
                       <option value="fmsynth">FM</option>
                       <option value="bassline">Bass</option>
                     </select>

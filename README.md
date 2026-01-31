@@ -26,6 +26,7 @@ SynthWave is a zero-install, cross-platform music production environment that co
 - **14-Machine Rack System** - Virtual analog synths, samplers, drum machines, and more
 - **Professional Mixer** - 14-channel mixing desk with EQ, send effects, and automation
 - **Step Sequencer** - Powerful pattern-based sequencer with velocity and gate controls
+- **Customizable Dashboard** - Drag, resize, and persist card layouts with export/import
 - **Piano Roll** - Traditional MIDI note editing with advanced tools
 - **Song Arranger** - Pattern-to-song timeline with markers and automation lanes
 
@@ -134,6 +135,7 @@ php artisan serve
 - **Audio Engine:** [Tone.js](https://tonejs.github.io/) + Web Audio API
 - **Plugin System:** [Web Audio Modules 2.0](https://www.webaudiomodules.com/)
 - **State Management:** [Zustand](https://github.com/pmndrs/zustand)
+- **Layout System:** [react-grid-layout](https://github.com/react-grid-layout/react-grid-layout)
 - **Storage:** [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) (Dexie.js)
 
 ### Backend

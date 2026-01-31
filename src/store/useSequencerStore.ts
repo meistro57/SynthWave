@@ -88,7 +88,7 @@ export type SequencerState = {
 export type PatternSlot = "A" | "B" | "C" | "D";
 export type QuickPresetMode = "velocity" | "probability" | "gate" | "ratchet";
 export type QuickPresetLevel = "low" | "med" | "high";
-export type SequencerTarget = "subsynth" | "pcmsynth" | "fmsynth" | "bassline";
+export type SequencerTarget = "subsynth" | "pcmsynth" | "beatbox" | "fmsynth" | "bassline";
 
 function createGrid(rows: number, cols: number, fill = 0) {
   return Array.from({ length: rows }, () => Array.from({ length: cols }, () => fill));

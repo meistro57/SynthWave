@@ -98,6 +98,11 @@
 - [x] Build machine clone/duplicate function
 - [x] Implement machine mute/solo per machine
 
+### 2.6 UI Layout Personalization
+- [x] Add draggable/resizable dashboard layout (react-grid-layout)
+- [x] Persist layout to localStorage
+- [x] Export/import layout JSON
+
 ### 2.2 PCMSynth (Sampler)
 - [x] Build Tone.Sampler wrapper
 - [x] Create sample library browser

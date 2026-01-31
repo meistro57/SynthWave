@@ -177,6 +177,20 @@ abstract class Machine {
 
 ---
 
+### 2.5 UI Layout Personalization
+**Goal:** Let users arrange and size dashboard cards freely
+
+**Tasks:**
+- [x] Add draggable/resizable dashboard layout (react-grid-layout)
+- [x] Persist layout to localStorage
+- [x] Export/import layout JSON
+
+**Deliverables:**
+- Customizable dashboard grid
+- Layout persistence + shareable layout files
+
+---
+
 ### 2.2 PCMSynth (Sampler)
 **Goal:** Multi-sample playback synthesizer
 

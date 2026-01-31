@@ -10,6 +10,7 @@ import {
   getMasterWidthMeter,
   setReverbSendLevel,
   setMasterEQ,
+  setMasterBoost,
   setMasterVolume,
 } from "@/audio/audioEngine";
 import { MASTER_LIMITER_THRESHOLD_DB } from "@/audio/constants";
@@ -20,6 +21,7 @@ export function MasterSection() {
   const [delaySend, setDelaySend] = useState(0.2);
   const [reverbSend, setReverbSend] = useState(0.2);
   const [compressorEnabled, setCompressorEnabled] = useState(false);
+  const [boost, setBoost] = useState(1.2);
   const [meter, setMeter] = useState(0);
   const [width, setWidth] = useState(0);
   const [spectrum, setSpectrum] = useState<number[]>([]);
@@ -43,6 +45,10 @@ export function MasterSection() {
   useEffect(() => {
     setMasterCompressorEnabled(compressorEnabled);
   }, [compressorEnabled]);
+
+  useEffect(() => {
+    setMasterBoost(boost);
+  }, [boost]);
 
   useEffect(() => {
     let active = true;
@@ -102,6 +108,19 @@ export function MasterSection() {
               <div className="mt-3 h-2 rounded-full bg-slate-800">
                 <div className="h-2 rounded-full bg-emerald-400" style={{ width: `${meter * 100}%` }} />
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Master Boost</p>
+              <input
+                type="range"
+                min={0.5}
+                max={2}
+                step={0.01}
+                value={boost}
+                onChange={(event) => setBoost(Number(event.target.value))}
+                className="mt-3 w-full"
+              />
             </div>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
