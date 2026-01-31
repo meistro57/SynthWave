@@ -28,13 +28,14 @@ SynthWave is a zero-install, cross-platform music production environment that co
 - **Step Sequencer** - Powerful pattern-based sequencer with velocity and gate controls
 - **Customizable Dashboard** - Drag, resize, and persist card layouts with export/import
 - **Piano Roll** - Traditional MIDI note editing with advanced tools
-- **Song Arranger** - Pattern-to-song timeline with markers and automation lanes
+- **Song Arranger** - Slot-based song mode for chaining patterns into full tracks
 
 ### 🎚️ Machines (Instruments)
 - **SubSynth** - Virtual analog subtractive synthesizer
 - **PCMSynth** - Multi-sample wave synthesizer with SoundFont support
 - **BassLine** - TB-303 style monosynth with slide and accent
 - **BeatBox** - 8-channel sampling drum machine
+- **BeatBox Kits** - Factory, 808, House, Lo-Fi kit presets + pattern library
 - **PadSynth** - Harmonic table pad synthesizer
 - **FMSynth** - DX-style 3-operator FM synthesis
 - **SawSynth** - Supersaw-type polyphonic synthesizer

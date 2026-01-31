@@ -236,6 +236,11 @@ export async function triggerPCMSynth(
     return;
   }
 
+  const hasSampler = typeof (sampler as { has?: (note: string) => boolean }).has === "function";
+  if (hasSampler && !(sampler as { has: (note: string) => boolean }).has(note)) {
+    return;
+  }
+
   const noteEnvelope = noteEnvelopes.get(note);
   if (noteEnvelope && pcmEnvelope) {
     pcmEnvelope.set({
@@ -246,11 +251,15 @@ export async function triggerPCMSynth(
     });
   }
 
-  sampler.triggerAttack(note, startTime, velocity);
-  envelope.triggerAttack(startTime);
-  const releaseTime = Tone.Time(duration).toSeconds() + Tone.Time(startTime).toSeconds();
-  sampler.triggerRelease(note, releaseTime);
-  envelope.triggerRelease(releaseTime);
+  try {
+    sampler.triggerAttack(note, startTime, velocity);
+    envelope.triggerAttack(startTime);
+    const releaseTime = Tone.Time(duration).toSeconds() + Tone.Time(startTime).toSeconds();
+    sampler.triggerRelease(note, releaseTime);
+    envelope.triggerRelease(releaseTime);
+  } catch (error) {
+    console.warn(`PCMSynth trigger skipped for note ${note}.`, error);
+  }
 }
 
 export function disposePCMSynth() {

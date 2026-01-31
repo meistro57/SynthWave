@@ -83,6 +83,10 @@
 - [x] Add per-row FX sends (delay/reverb)
 - [x] Add pattern library tagging + search
 - [x] Add groove templates (swing/humanize presets)
+- [x] Add seeded randomizer for repeatable patterns
+- [x] Add octave shift controls
+- [x] Add note preview on row labels
+- [x] Add BeatBox target + row label mapping
 
 ---
 
@@ -123,6 +127,9 @@
 - [x] Create swing/humanize function
 - [x] Build pattern variations (A/B/C/D)
 - [x] Add drum pad trigger interface
+- [x] Add live recording into step grid
+- [x] Add kit presets (Factory/808/House/Lo-Fi)
+- [x] Add drum sequence preset library (basic + complex)
 
 ### 2.4 FMSynth
 - [x] Implement Tone.FMSynth (3-operator)
@@ -177,20 +184,22 @@
 - [x] Build spectrum analyzer visualization
 - [x] Create stereo width meter
 - [x] Add master compressor option
+- [x] Add Spectrum EQ visualizer with display options
+- [x] Add Master Meter spectrum view
 
 ---
 
 ## Phase 4: Song Arrangement
 
 ### 4.1 Song Sequencer
-- [ ] Create timeline/arrangement view
-- [ ] Build pattern block system
-- [ ] Implement pattern drag & drop to timeline
+- [x] Create timeline/arrangement view (slot-based MVP)
+- [x] Build pattern block system (slot blocks)
+- [x] Implement pattern drag & drop to timeline (block reorder)
 - [ ] Add pattern repeat/loop functionality
 - [ ] Create section markers (intro, verse, chorus, etc.)
 - [ ] Build timeline zoom controls
 - [ ] Add pattern variations per machine
-- [ ] Implement song length/bar count
+- [x] Implement song length/bar count
 
 ### 4.2 Automation System
 - [ ] Design automation lane UI

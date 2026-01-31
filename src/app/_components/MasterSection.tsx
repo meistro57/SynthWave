@@ -25,6 +25,12 @@ export function MasterSection() {
   const [meter, setMeter] = useState(0);
   const [width, setWidth] = useState(0);
   const [spectrum, setSpectrum] = useState<number[]>([]);
+  const [vizMode, setVizMode] = useState<"bars" | "line">("bars");
+  const [colorMode, setColorMode] = useState<"bands" | "gradient">("bands");
+  const [barCount, setBarCount] = useState<32 | 64>(64);
+  const [peakHold, setPeakHold] = useState(true);
+  const [peakDecay, setPeakDecay] = useState(4);
+  const peakRef = useState<number[]>([])[0];
 
   useEffect(() => {
     setMasterVolume(volume);
@@ -69,7 +75,20 @@ export function MasterSection() {
       }
 
       const fftValues = fft.getValue();
-      setSpectrum(Array.from(fftValues.subarray(0, 24)));
+      setSpectrum(Array.from(fftValues.subarray(0, barCount)));
+
+      if (peakHold) {
+        const next = Array.from(fftValues.subarray(0, barCount)).map((value) =>
+          Math.max(2, Math.min(100, (value + 100) * 1.2)),
+        );
+        for (let i = 0; i < next.length; i += 1) {
+          const current = peakRef[i] ?? 0;
+          const decayed = Math.max(0, current - peakDecay);
+          peakRef[i] = Math.max(decayed, next[i]);
+        }
+      } else if (peakRef.length) {
+        peakRef.length = 0;
+      }
       requestAnimationFrame(tick);
     };
     tick();
@@ -79,10 +98,33 @@ export function MasterSection() {
     };
   }, []);
 
-  const spectrumBars = useMemo(
-    () => spectrum.map((value) => Math.max(2, Math.min(100, (value + 100) * 1.2))),
-    [spectrum],
-  );
+  const spectrumBars = useMemo(() => {
+    return spectrum.map((value, index) => {
+      const height = Math.max(2, Math.min(100, (value + 100) * 1.2));
+      if (colorMode === "gradient") {
+        const hue = 190 + (index / Math.max(1, spectrum.length - 1)) * 110;
+        return { height, color: `hsl(${hue}, 85%, 60%)` };
+      }
+      const third = spectrum.length / 3;
+      const band = index < third ? "low" : index < third * 2 ? "mid" : "high";
+      const color =
+        band === "low"
+          ? "rgba(34, 211, 238, 0.85)"
+          : band === "mid"
+            ? "rgba(251, 191, 36, 0.85)"
+            : "rgba(167, 139, 250, 0.85)";
+      return { height, color };
+    });
+  }, [spectrum, colorMode]);
+
+  const spectrumLine = useMemo(() => {
+    const points = spectrumBars.map((bar, index) => {
+      const x = (index / Math.max(1, spectrumBars.length - 1)) * 100;
+      const y = 100 - bar.height;
+      return `${x},${y}`;
+    });
+    return `0,100 ${points.join(" ")} 100,100`;
+  }, [spectrumBars]);
 
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
@@ -178,15 +220,92 @@ export function MasterSection() {
 
           <div className="space-y-4">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Spectrum Analyzer</p>
-              <div className="mt-3 grid grid-cols-12 items-end gap-1">
-                {spectrumBars.map((height, index) => (
-                  <div
-                    key={`bar-${index}`}
-                    className="rounded bg-cyan-400/70"
-                    style={{ height: `${height}px` }}
-                  />
-                ))}
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Spectrum EQ</p>
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                  <button
+                    type="button"
+                    onClick={() => setVizMode((mode) => (mode === "bars" ? "line" : "bars"))}
+                    className="rounded-full border border-slate-700 px-2 py-0.5 text-slate-200"
+                  >
+                    {vizMode === "bars" ? "Bars" : "Line"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setColorMode((mode) => (mode === "bands" ? "gradient" : "bands"))}
+                    className="rounded-full border border-slate-700 px-2 py-0.5 text-slate-200"
+                  >
+                    {colorMode === "bands" ? "Bands" : "Gradient"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBarCount((count) => (count === 64 ? 32 : 64))}
+                    className="rounded-full border border-slate-700 px-2 py-0.5 text-slate-200"
+                  >
+                    {barCount} bars
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPeakHold((value) => !value)}
+                    className="rounded-full border border-slate-700 px-2 py-0.5 text-slate-200"
+                  >
+                    {peakHold ? "Peak On" : "Peak Off"}
+                  </button>
+                </div>
+              </div>
+              <div className="mt-3 h-56 rounded-xl border border-slate-800 bg-gradient-to-b from-slate-900/60 to-slate-950/80 p-3">
+                <div className="h-full">
+                  {vizMode === "bars" ? (
+                    <div
+                      className="grid h-full items-end gap-1"
+                      style={{ gridTemplateColumns: `repeat(${spectrumBars.length}, minmax(0, 1fr))` }}
+                    >
+                      {spectrumBars.map((bar, index) => (
+                        <div
+                          key={`bar-${index}`}
+                          className="rounded-sm"
+                          style={{ height: `${bar.height}px`, backgroundColor: bar.color }}
+                        />
+                      ))}
+                      {peakHold &&
+                        peakRef.slice(0, spectrumBars.length).map((peak, index) => (
+                          <div
+                            key={`peak-${index}`}
+                            className="h-0.5 rounded-sm bg-white/60"
+                            style={{ marginTop: `${100 - peak}px` }}
+                          />
+                        ))}
+                    </div>
+                  ) : (
+                    <svg viewBox="0 0 100 100" className="h-full w-full" preserveAspectRatio="none">
+                      <polyline
+                        points={spectrumLine}
+                        fill="none"
+                        stroke="rgba(56, 189, 248, 0.9)"
+                        strokeWidth="1.5"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                  <span className="rounded-full bg-cyan-400/20 px-2 py-0.5 text-cyan-200">Low</span>
+                  <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-amber-200">Mid</span>
+                  <span className="rounded-full bg-violet-400/20 px-2 py-0.5 text-violet-200">High</span>
+                </div>
+                {peakHold && (
+                  <div className="mt-2 flex items-center gap-2 text-[10px] text-slate-500">
+                    Peak Decay
+                    <input
+                      type="range"
+                      min={1}
+                      max={10}
+                      step={1}
+                      value={peakDecay}
+                      onChange={(event) => setPeakDecay(Number(event.target.value))}
+                      className="w-32"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

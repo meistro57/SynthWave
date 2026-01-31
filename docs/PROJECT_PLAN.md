@@ -107,6 +107,8 @@
 - [ ] Implement playback with visual feedback
 - [ ] Add clear/randomize pattern functions
 - [ ] Build copy/paste pattern functionality
+- [x] Add note preview on row labels
+- [x] Add octave shift controls
 
 **Data Structure:**
 ```typescript
@@ -224,6 +226,9 @@ abstract class Machine {
 - [x] Create swing/humanize function
 - [x] Build pattern variations (A/B/C/D)
 - [x] Add drum pad trigger interface
+- [x] Add live recording into the step grid
+- [x] Add kit presets (Factory/808/House/Lo-Fi)
+- [x] Add drum sequence preset library (basic + complex)
 
 **Deliverables:**
 - 8-channel drum machine
@@ -338,6 +343,8 @@ abstract class Machine {
 - [x] Build spectrum analyzer visualization
 - [x] Create stereo width meter
 - [x] Add master compressor option
+- [x] Add spectrum EQ visualizer with display options
+- [x] Add master meter spectrum visualization
 
 **Deliverables:**
 - Mastering-grade output section
@@ -351,14 +358,14 @@ abstract class Machine {
 **Goal:** Arrange patterns into complete songs
 
 **Tasks:**
-- [ ] Create timeline/arrangement view
-- [ ] Build pattern block system
-- [ ] Implement pattern drag & drop to timeline
+- [x] Create timeline/arrangement view (slot-based MVP)
+- [x] Build pattern block system (slot blocks)
+- [x] Implement pattern drag & drop to timeline (block reorder)
 - [ ] Add pattern repeat/loop functionality
 - [ ] Create section markers (intro, verse, chorus, etc.)
 - [ ] Build timeline zoom controls
 - [ ] Add pattern variations per machine
-- [ ] Implement song length/bar count
+- [x] Implement song length/bar count
 
 **Song Structure:**
 ```typescript

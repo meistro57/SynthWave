@@ -75,7 +75,7 @@ export type SequencerState = {
   setRowReverbSends: (sends: number[]) => void;
   setRowTargets: (targets: SequencerTarget[]) => void;
   clear: () => void;
-  randomize: (density?: number) => void;
+  randomize: (density?: number, seed?: number) => void;
   loadPattern: (pattern: SequencerPattern) => void;
   setSlot: (slot: PatternSlot) => void;
   setSlots: (slots: Record<PatternSlot, SequencerPattern | null>) => void;
@@ -94,16 +94,24 @@ function createGrid(rows: number, cols: number, fill = 0) {
   return Array.from({ length: rows }, () => Array.from({ length: cols }, () => fill));
 }
 
-function randomVelocity() {
-  return 0.4 + Math.random() * 0.6;
+function randomVelocity(rand: () => number) {
+  return 0.4 + rand() * 0.6;
 }
 
-function randomGate() {
-  return 0.3 + Math.random() * 0.7;
+function randomGate(rand: () => number) {
+  return 0.3 + rand() * 0.7;
 }
 
-function randomRatchet() {
-  return Math.ceil(Math.random() * 4);
+function randomRatchet(rand: () => number) {
+  return Math.ceil(rand() * 4);
+}
+
+function createSeededRng(seed: number) {
+  let value = seed >>> 0;
+  return () => {
+    value = (value * 1664525 + 1013904223) >>> 0;
+    return value / 4294967296;
+  };
 }
 
 function resizeGrid<T extends number>(grid: T[][], rows: number, cols: number, fill: T) {
@@ -202,15 +210,17 @@ export const useSequencerStore = create<SequencerState>((set, get) => ({
       gate: createGrid(state.notes.length, state.steps, 1),
       ratchet: createGrid(state.notes.length, state.steps, 1),
     })),
-  randomize: (density = 0.25) =>
+  randomize: (density = 0.25, seed) => {
+    const rand = typeof seed === "number" ? createSeededRng(seed) : Math.random;
     set((state) => ({
       grid: state.grid.map((row) =>
-        row.map(() => (Math.random() < density ? randomVelocity() : 0)),
+        row.map(() => (rand() < density ? randomVelocity(rand) : 0)),
       ),
-      probability: state.probability.map((row) => row.map(() => Math.random() * 0.8 + 0.2)),
-      gate: state.gate.map((row) => row.map(() => randomGate())),
-      ratchet: state.ratchet.map((row) => row.map(() => randomRatchet())),
-    })),
+      probability: state.probability.map((row) => row.map(() => rand() * 0.8 + 0.2)),
+      gate: state.gate.map((row) => row.map(() => randomGate(rand))),
+      ratchet: state.ratchet.map((row) => row.map(() => randomRatchet(rand))),
+    }));
+  },
   loadPattern: (pattern) =>
     set({
       steps: pattern.steps ?? DEFAULT_STEPS,

@@ -122,7 +122,7 @@ function ensureMasterChain() {
   }
 
   if (!masterFFT) {
-    masterFFT = new Tone.FFT(64);
+    masterFFT = new Tone.FFT(128);
     masterLimiter.connect(masterFFT);
   }
 }

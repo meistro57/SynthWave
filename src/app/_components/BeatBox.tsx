@@ -27,6 +27,175 @@ import { useTransportStore } from "@/store/useTransportStore";
 
 const FILE_ACCEPT = ".wav,audio/wav,audio/x-wav,audio/wave,audio/flac,audio/mp3,audio/mpeg";
 const SLOT_LABELS = ["A", "B", "C", "D"] as const;
+const CHANNEL_COUNT = 8;
+const FACTORY_KIT_NAME = "Factory Kit";
+
+type GridStep = number | [number, number];
+
+function createGrid(rows: number, cols: number, fill = 0) {
+  return Array.from({ length: rows }, () => Array.from({ length: cols }, () => fill));
+}
+
+function applyHits(grid: number[][], row: number, steps: GridStep[], velocity = 0.8) {
+  steps.forEach((step) => {
+    const [index, vel] = Array.isArray(step) ? step : [step, velocity];
+    if (!grid[row]) return;
+    grid[row][index] = vel;
+  });
+}
+
+function buildPresetPatterns(channels: BeatBoxPattern["channels"]) {
+  const patterns: Record<string, BeatBoxPattern> = {};
+
+  const fourOnTheFloor = createGrid(CHANNEL_COUNT, 16, 0);
+  applyHits(fourOnTheFloor, 0, [0, 4, 8, 12], 0.95);
+  applyHits(fourOnTheFloor, 1, [4, 12], 0.85);
+  applyHits(fourOnTheFloor, 2, [12], 0.6);
+  applyHits(fourOnTheFloor, 3, [2, 6, 10, 14], 0.45);
+  applyHits(fourOnTheFloor, 4, [15], 0.5);
+  patterns["Four on the Floor"] = {
+    name: "Four on the Floor",
+    steps: 16,
+    grid: fourOnTheFloor,
+    channels,
+  };
+
+  const hipHop = createGrid(CHANNEL_COUNT, 16, 0);
+  applyHits(hipHop, 0, [0, 6, 9, 11, 14], 0.9);
+  applyHits(hipHop, 1, [4, 12], 0.9);
+  applyHits(hipHop, 3, [2, 6, 10, 14], 0.4);
+  applyHits(hipHop, 6, [7], 0.55);
+  patterns["Hip Hop Pocket"] = {
+    name: "Hip Hop Pocket",
+    steps: 16,
+    grid: hipHop,
+    channels,
+  };
+
+  const breakbeat = createGrid(CHANNEL_COUNT, 16, 0);
+  applyHits(breakbeat, 0, [0, 3, 7, 10, 12], 0.9);
+  applyHits(breakbeat, 1, [4, 12], 0.8);
+  applyHits(breakbeat, 3, [0, 2, 4, 6, 8, 10, 12, 14], 0.35);
+  applyHits(breakbeat, 4, [7], 0.5);
+  patterns["Breakbeat"] = {
+    name: "Breakbeat",
+    steps: 16,
+    grid: breakbeat,
+    channels,
+  };
+
+  const drumAndBass = createGrid(CHANNEL_COUNT, 16, 0);
+  applyHits(drumAndBass, 0, [0, 6, 10, 14], 0.95);
+  applyHits(drumAndBass, 1, [4, 12], 0.9);
+  applyHits(drumAndBass, 3, [0, 2, 3, 5, 7, 8, 10, 11, 13, 15], 0.35);
+  applyHits(drumAndBass, 4, [7, 15], 0.5);
+  applyHits(drumAndBass, 6, [11], 0.55);
+  patterns["Drum & Bass"] = {
+    name: "Drum & Bass",
+    steps: 16,
+    grid: drumAndBass,
+    channels,
+  };
+
+  const funk = createGrid(CHANNEL_COUNT, 16, 0);
+  applyHits(funk, 0, [0, 3, 7, 11, 14], 0.9);
+  applyHits(funk, 1, [4, 10, 12], 0.85);
+  applyHits(funk, 2, [8], 0.6);
+  applyHits(funk, 3, [1, 5, 9, 13, 15], 0.45);
+  applyHits(funk, 6, [6], 0.5);
+  patterns["Funk Shuffle"] = {
+    name: "Funk Shuffle",
+    steps: 16,
+    grid: funk,
+    channels,
+  };
+
+  const trap = createGrid(CHANNEL_COUNT, 16, 0);
+  applyHits(trap, 0, [0, 5, 9, 11, 13], 0.95);
+  applyHits(trap, 1, [8], 0.9);
+  applyHits(
+    trap,
+    3,
+    [
+      [0, 0.35],
+      [1, 0.4],
+      [2, 0.35],
+      [3, 0.5],
+      [4, 0.35],
+      [5, 0.4],
+      [6, 0.35],
+      [7, 0.6],
+      [8, 0.35],
+      [9, 0.4],
+      [10, 0.35],
+      [11, 0.7],
+      [12, 0.35],
+      [13, 0.4],
+      [14, 0.35],
+      [15, 0.6],
+    ],
+  );
+  applyHits(trap, 4, [12], 0.55);
+  patterns["Trap Hats"] = {
+    name: "Trap Hats",
+    steps: 16,
+    grid: trap,
+    channels,
+  };
+
+  const garage = createGrid(CHANNEL_COUNT, 16, 0);
+  applyHits(garage, 0, [0, 7, 11, 15], 0.9);
+  applyHits(garage, 1, [4, 12], 0.85);
+  applyHits(garage, 3, [2, 6, 10, 14], 0.45);
+  applyHits(garage, 4, [9], 0.5);
+  patterns["UK Garage"] = {
+    name: "UK Garage",
+    steps: 16,
+    grid: garage,
+    channels,
+  };
+
+  const afro = createGrid(CHANNEL_COUNT, 16, 0);
+  applyHits(afro, 0, [0, 5, 9, 13], 0.9);
+  applyHits(afro, 1, [4, 12], 0.8);
+  applyHits(afro, 7, [2, 6, 10, 14], 0.5);
+  applyHits(afro, 3, [1, 3, 7, 11, 15], 0.35);
+  patterns["Afro Groove"] = {
+    name: "Afro Groove",
+    steps: 16,
+    grid: afro,
+    channels,
+  };
+
+  const techno = createGrid(CHANNEL_COUNT, 16, 0);
+  applyHits(techno, 0, [0, 4, 8, 12], 0.95);
+  applyHits(techno, 1, [4, 12], 0.8);
+  applyHits(techno, 3, [2, 6, 10, 14], 0.4);
+  applyHits(techno, 4, [0, 8], 0.4);
+  applyHits(techno, 7, [3, 11], 0.5);
+  patterns["Techno Drive"] = {
+    name: "Techno Drive",
+    steps: 16,
+    grid: techno,
+    channels,
+  };
+
+  const electro = createGrid(CHANNEL_COUNT, 16, 0);
+  applyHits(electro, 0, [0, 8], 0.9);
+  applyHits(electro, 1, [4, 12], 0.85);
+  applyHits(electro, 2, [12], 0.6);
+  applyHits(electro, 3, [2, 6, 10, 14], 0.4);
+  applyHits(electro, 6, [6, 14], 0.55);
+  applyHits(electro, 7, [2, 10], 0.5);
+  patterns["Electro"] = {
+    name: "Electro",
+    steps: 16,
+    grid: electro,
+    channels,
+  };
+
+  return patterns;
+}
 
 function velocityFromPointer(event: React.PointerEvent<HTMLButtonElement>) {
   const rect = event.currentTarget.getBoundingClientRect();
@@ -66,6 +235,8 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
   const [renameValue, setRenameValue] = useState<string>("");
   const [exportText, setExportText] = useState<string>("");
   const [status, setStatus] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [selectedKit, setSelectedKit] = useState(FACTORY_KIT_NAME);
 
   const scheduleIdRef = useRef<number | null>(null);
   const stepRef = useRef(0);
@@ -74,6 +245,8 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
   const stepsRef = useRef(steps);
   const swingRef = useRef(swing);
   const humanizeRef = useRef(humanizeMs);
+  const presetsLoadedRef = useRef(false);
+  const factorySamplesRef = useRef(getBeatBoxFactorySamples());
 
   useEffect(() => {
     gridRef.current = grid;
@@ -98,7 +271,7 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
   useEffect(() => {
     const init = async () => {
       await initBeatBox();
-      const factorySamples = getBeatBoxFactorySamples();
+      const factorySamples = factorySamplesRef.current;
       factorySamples.forEach(async (sample, index) => {
         await setBeatBoxSample(index, sample.buffer);
         setChannelSampleName(index, `Factory ${sample.name}`);
@@ -108,7 +281,15 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
   }, [setChannelSampleName]);
 
   useEffect(() => {
-    setPatterns(loadBeatBoxPatterns());
+    if (presetsLoadedRef.current) return;
+    presetsLoadedRef.current = true;
+    const stored = loadBeatBoxPatterns();
+    const presets = buildPresetPatterns(channelsRef.current);
+    const merged = { ...presets, ...stored };
+    if (Object.keys(merged).length !== Object.keys(stored).length) {
+      saveBeatBoxPatterns(merged);
+    }
+    setPatterns(merged);
     setSlots(loadBeatBoxSlots());
   }, [setSlots]);
 
@@ -234,6 +415,29 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
     setExportText(JSON.stringify(payload, null, 2));
   };
 
+  const handleCopyJson = async () => {
+    const payload =
+      exportText.trim() ||
+      JSON.stringify(
+        {
+          name: presetName.trim() || "BeatBox Pattern",
+          steps,
+          grid,
+          channels,
+        } satisfies BeatBoxPattern,
+        null,
+        2,
+      );
+    setExportText(payload);
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(payload);
+      } catch {
+        // ignore clipboard errors
+      }
+    }
+  };
+
   const handleImport = () => {
     if (!exportText.trim()) return;
     try {
@@ -282,6 +486,97 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
     event.preventDefault();
   };
 
+  const handlePadTrigger = (rowIndex: number, velocity = 0.9) => {
+    triggerBeatBox(rowIndex, undefined, velocity);
+    if (!isRecording || !isPlaying) return;
+    const step = stepRef.current % stepsRef.current;
+    setVelocity(rowIndex, step, velocity);
+  };
+
+  const kitPresets = useMemo(
+    () => [
+      {
+        name: "Factory Kit",
+        channels: [
+          { sample: "Kick", volume: 0.9, tune: 0, pan: 0, delay: 0.1, reverb: 0.1 },
+          { sample: "Snare", volume: 0.8, tune: 0, pan: 0, delay: 0.2, reverb: 0.2 },
+          { sample: "Clap", volume: 0.75, tune: 0, pan: 0, delay: 0.2, reverb: 0.25 },
+          { sample: "Hat", volume: 0.7, tune: 0, pan: -0.1, delay: 0.05, reverb: 0.05 },
+          { sample: "Open Hat", volume: 0.7, tune: 0, pan: 0.1, delay: 0.1, reverb: 0.2 },
+          { sample: "Tom", volume: 0.8, tune: 0, pan: -0.15, delay: 0.15, reverb: 0.2 },
+          { sample: "Rim", volume: 0.7, tune: 0, pan: 0.15, delay: 0.05, reverb: 0.1 },
+          { sample: "Perc", volume: 0.7, tune: 0, pan: 0, delay: 0.1, reverb: 0.15 },
+        ],
+      },
+      {
+        name: "808 Kit",
+        channels: [
+          { sample: "Kick", volume: 0.95, tune: -4, pan: 0, delay: 0.05, reverb: 0.1 },
+          { sample: "Snare", volume: 0.8, tune: -1, pan: 0, delay: 0.15, reverb: 0.2 },
+          { sample: "Clap", volume: 0.7, tune: -1, pan: 0.05, delay: 0.2, reverb: 0.25 },
+          { sample: "Hat", volume: 0.6, tune: 3, pan: -0.2, delay: 0.02, reverb: 0.05 },
+          { sample: "Open Hat", volume: 0.6, tune: 2, pan: 0.2, delay: 0.08, reverb: 0.15 },
+          { sample: "Tom", volume: 0.75, tune: -3, pan: -0.1, delay: 0.1, reverb: 0.18 },
+          { sample: "Rim", volume: 0.65, tune: 2, pan: 0.1, delay: 0.05, reverb: 0.1 },
+          { sample: "Perc", volume: 0.65, tune: 1, pan: 0, delay: 0.08, reverb: 0.12 },
+        ],
+      },
+      {
+        name: "House Kit",
+        channels: [
+          { sample: "Kick", volume: 0.9, tune: -2, pan: 0, delay: 0.05, reverb: 0.1 },
+          { sample: "Snare", volume: 0.75, tune: 0, pan: 0, delay: 0.2, reverb: 0.25 },
+          { sample: "Clap", volume: 0.8, tune: 1, pan: 0.05, delay: 0.2, reverb: 0.3 },
+          { sample: "Hat", volume: 0.65, tune: 3, pan: -0.2, delay: 0.05, reverb: 0.08 },
+          { sample: "Open Hat", volume: 0.65, tune: 2, pan: 0.2, delay: 0.1, reverb: 0.2 },
+          { sample: "Tom", volume: 0.7, tune: -1, pan: -0.1, delay: 0.1, reverb: 0.15 },
+          { sample: "Rim", volume: 0.6, tune: 3, pan: 0.1, delay: 0.05, reverb: 0.1 },
+          { sample: "Perc", volume: 0.7, tune: 2, pan: 0, delay: 0.08, reverb: 0.12 },
+        ],
+      },
+      {
+        name: "Lo-Fi Kit",
+        channels: [
+          { sample: "Kick", volume: 0.8, tune: -5, pan: 0, delay: 0.08, reverb: 0.2 },
+          { sample: "Snare", volume: 0.7, tune: -2, pan: 0, delay: 0.15, reverb: 0.3 },
+          { sample: "Clap", volume: 0.6, tune: -3, pan: 0, delay: 0.2, reverb: 0.35 },
+          { sample: "Hat", volume: 0.55, tune: -1, pan: -0.15, delay: 0.1, reverb: 0.18 },
+          { sample: "Open Hat", volume: 0.55, tune: -2, pan: 0.15, delay: 0.15, reverb: 0.25 },
+          { sample: "Tom", volume: 0.65, tune: -4, pan: -0.1, delay: 0.12, reverb: 0.25 },
+          { sample: "Rim", volume: 0.55, tune: -1, pan: 0.1, delay: 0.08, reverb: 0.2 },
+          { sample: "Perc", volume: 0.6, tune: -2, pan: 0, delay: 0.12, reverb: 0.2 },
+        ],
+      },
+    ],
+    [],
+  );
+
+  const handleApplyKit = async () => {
+    await initBeatBox();
+    const preset = kitPresets.find((kit) => kit.name === selectedKit);
+    if (!preset) return;
+    const samples = factorySamplesRef.current;
+    const sampleByName = new Map(samples.map((sample) => [sample.name, sample.buffer]));
+    preset.channels.forEach((channel, index) => {
+      const buffer = sampleByName.get(channel.sample);
+      if (buffer) {
+        setBeatBoxSample(index, buffer);
+        setChannelSampleName(index, `Kit ${channel.sample}`);
+      }
+      setChannelVolume(index, channel.volume);
+      setBeatBoxChannelVolume(index, channel.volume);
+      setChannelPan(index, channel.pan);
+      setBeatBoxChannelPan(index, channel.pan);
+      setChannelTune(index, channel.tune);
+      setBeatBoxChannelTune(index, channel.tune);
+      setChannelDelaySend(index, channel.delay);
+      setBeatBoxChannelDelaySend(index, channel.delay);
+      setChannelReverbSend(index, channel.reverb);
+      setBeatBoxChannelReverbSend(index, channel.reverb);
+    });
+    setStatus(`Loaded ${preset.name}.`);
+  };
+
   const stepsOptions = useMemo(() => [8, 16, 32], []);
 
   return (
@@ -320,6 +615,37 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
             className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-rose-400"
           >
             Clear
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsRecording((value) => !value)}
+            className={
+              "rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition " +
+              (isRecording
+                ? "border-rose-400 text-rose-200"
+                : "border-slate-700 text-slate-200 hover:border-rose-300")
+            }
+          >
+            {isRecording ? "Recording" : "Record"}
+          </button>
+          <label className="text-xs uppercase tracking-[0.2em] text-slate-500">Kit</label>
+          <select
+            value={selectedKit}
+            onChange={(event) => setSelectedKit(event.target.value)}
+            className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200"
+          >
+            {kitPresets.map((kit) => (
+              <option key={kit.name} value={kit.name}>
+                {kit.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={handleApplyKit}
+            className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-cyan-400"
+          >
+            Load Kit
           </button>
         </div>
 
@@ -419,6 +745,20 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
                 onClick={handleExport}
                 className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-cyan-400"
               >
+                View JSON
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyJson}
+                className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-cyan-400"
+              >
+                Copy JSON
+              </button>
+              <button
+                type="button"
+                onClick={handleExport}
+                className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-cyan-400"
+              >
                 Export JSON
               </button>
               <button
@@ -446,7 +786,7 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
                 <div key={channels[rowIndex]?.name ?? rowIndex} className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => triggerBeatBox(rowIndex)}
+                    onClick={() => handlePadTrigger(rowIndex)}
                     className="w-24 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-cyan-400"
                   >
                     {channels[rowIndex]?.name ?? `Pad ${rowIndex + 1}`}

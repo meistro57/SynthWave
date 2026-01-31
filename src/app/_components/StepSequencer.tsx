@@ -47,7 +47,9 @@ type SequencerSettings = {
   editMode: EditMode;
   slotAuto: Record<PatternSlot, boolean>;
   randomizeDensity: number;
+  randomizeSeed: number | null;
   steps: number;
+  octaveShift: number;
 };
 
 function loadPatterns(): PatternMap {
@@ -87,6 +89,7 @@ function ratchetFromPointer(event: React.PointerEvent<HTMLButtonElement>) {
 }
 
 const SLOT_LABELS: PatternSlot[] = ["A", "B", "C", "D"];
+const BEATBOX_LABELS = ["Kick", "Snare", "Clap", "Hat", "Open Hat", "Tom", "Rim", "Perc"] as const;
 
 export function StepSequencer() {
   const { bpm, isPlaying, humanizeMs } = useTransportStore();
@@ -149,6 +152,8 @@ export function StepSequencer() {
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [editMode, setEditMode] = useState<EditMode>("velocity");
   const [randomizeDensity, setRandomizeDensity] = useState(25);
+  const [randomizeSeed, setRandomizeSeed] = useState<number | null>(null);
+  const [octaveShift, setOctaveShift] = useState(0);
   const [importText, setImportText] = useState("");
 
   const gridRef = useRef(grid);
@@ -163,6 +168,7 @@ export function StepSequencer() {
   const rowDelaySendsRef = useRef(rowDelaySends);
   const rowReverbSendsRef = useRef(rowReverbSends);
   const rowTargetsRef = useRef(rowTargets);
+  const prevTargetRef = useRef(target);
   const resolutionRef = useRef(resolution);
   const notesRef = useRef(notes);
   const stepsRef = useRef(steps);
@@ -211,7 +217,9 @@ export function StepSequencer() {
       if (parsed.editMode) setEditMode(parsed.editMode);
       if (parsed.slotAuto) setSlotAuto(parsed.slotAuto);
       if (typeof parsed.randomizeDensity === "number") setRandomizeDensity(parsed.randomizeDensity);
+      if (typeof parsed.randomizeSeed === "number") setRandomizeSeed(parsed.randomizeSeed);
       if (typeof parsed.steps === "number") setSteps(parsed.steps);
+      if (typeof parsed.octaveShift === "number") setOctaveShift(parsed.octaveShift);
     } catch {
       // ignore settings parse errors
     }
@@ -242,7 +250,9 @@ export function StepSequencer() {
       editMode,
       slotAuto,
       randomizeDensity,
+      randomizeSeed,
       steps,
+      octaveShift,
     };
     window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload));
   }, [
@@ -257,7 +267,9 @@ export function StepSequencer() {
     editMode,
     slotAuto,
     randomizeDensity,
+    randomizeSeed,
     steps,
+    octaveShift,
   ]);
 
   useEffect(() => {
@@ -307,6 +319,15 @@ export function StepSequencer() {
   useEffect(() => {
     rowTargetsRef.current = rowTargets;
   }, [rowTargets]);
+
+  useEffect(() => {
+    const prevTarget = prevTargetRef.current;
+    if (prevTarget === target) return;
+    setRowTargets(
+      rowTargets.map((rowTarget) => (rowTarget === prevTarget ? target : rowTarget)),
+    );
+    prevTargetRef.current = target;
+  }, [target, rowTargets, setRowTargets]);
 
   useEffect(() => {
     resolutionRef.current = resolution;
@@ -392,7 +413,9 @@ export function StepSequencer() {
             const beatIndex = row % 8;
             triggerBeatBox(beatIndex, ratchetTime, velocity * volume);
           } else {
-            const note = Tone.Frequency(currentNotes[row]).transpose(transpose).toNote();
+          const note = Tone.Frequency(currentNotes[row])
+            .transpose(transpose + octaveShift * 12)
+            .toNote();
             if (rowTarget === "subsynth") {
               triggerSubSynth(note, duration, ratchetTime, velocity * volume);
             } else if (rowTarget === "pcmsynth") {
@@ -531,22 +554,38 @@ export function StepSequencer() {
     loadPattern(copiedPattern);
   };
 
-  const handleExportPattern = async () => {
+  const buildExportPayload = () => {
     const tags = tagInput
       .split(",")
       .map((tag) => tag.trim())
       .filter(Boolean);
-    const payload = JSON.stringify(
+    return JSON.stringify(
       { grid, probability, gate, ratchet, resolution, steps, tags },
       null,
       2,
     );
+  };
+
+  const handleExportPattern = async () => {
+    const payload = buildExportPayload();
     setImportText(payload);
     if (navigator.clipboard?.writeText) {
       try {
         await navigator.clipboard.writeText(payload);
       } catch {
         // Clipboard may be blocked; keep payload in textarea.
+      }
+    }
+  };
+
+  const handleCopyJson = async () => {
+    const payload = importText.trim() || buildExportPayload();
+    setImportText(payload);
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(payload);
+      } catch {
+        // ignore clipboard errors
       }
     }
   };
@@ -646,7 +685,42 @@ export function StepSequencer() {
   };
 
   const handleRandomize = () => {
-    randomize(randomizeDensity / 100);
+    randomize(randomizeDensity / 100, randomizeSeed ?? undefined);
+  };
+
+  const getRowLabel = (rowIndex: number) => {
+    const rowTarget = rowTargets[rowIndex] ?? target;
+    if (rowTarget === "beatbox") {
+      return BEATBOX_LABELS[rowIndex % BEATBOX_LABELS.length];
+    }
+    return Tone.Frequency(notes[rowIndex])
+      .transpose(octaveShift * 12)
+      .toNote();
+  };
+
+  const visibleRowCount = target === "beatbox" ? BEATBOX_LABELS.length : grid.length;
+  const visibleGrid = grid.slice(0, visibleRowCount);
+
+  const handlePreviewRow = async (rowIndex: number) => {
+    const rowTarget = rowTargets[rowIndex] ?? target;
+    if (rowTarget === "beatbox") {
+      triggerBeatBox(rowIndex % BEATBOX_LABELS.length);
+      return;
+    }
+    const transpose = rowTransposes[rowIndex] ?? 0;
+    const note = Tone.Frequency(notes[rowIndex])
+      .transpose(transpose + octaveShift * 12)
+      .toNote();
+    const velocity = Math.max(0.1, Math.min(1, rowVolumes[rowIndex] ?? 1));
+    if (rowTarget === "subsynth") {
+      triggerSubSynth(note, "8n", undefined, velocity);
+    } else if (rowTarget === "pcmsynth") {
+      triggerPCMSynth(note, "8n", undefined, velocity);
+    } else if (rowTarget === "fmsynth") {
+      triggerFMSynth(note, "8n", undefined, velocity);
+    } else if (rowTarget === "bassline") {
+      triggerBassLine(note, "8n", undefined, velocity, false, false);
+    }
   };
 
   return (
@@ -659,6 +733,27 @@ export function StepSequencer() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-xs uppercase tracking-[0.2em] text-slate-500">{tempoLabel}</span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setOctaveShift((value) => Math.max(-3, value - 1))}
+                className="rounded-full border border-slate-700 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-cyan-400"
+                title="Shift octave down"
+              >
+                Oct -
+              </button>
+              <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400">
+                {octaveShift >= 0 ? `+${octaveShift}` : octaveShift}
+              </span>
+              <button
+                type="button"
+                onClick={() => setOctaveShift((value) => Math.min(3, value + 1))}
+                className="rounded-full border border-slate-700 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-cyan-400"
+                title="Shift octave up"
+              >
+                Oct +
+              </button>
+            </div>
             <select
               value={resolution}
               onChange={(event) => setResolution(event.target.value as "16n" | "8n" | "4n")}
@@ -783,7 +878,7 @@ export function StepSequencer() {
           </span>
         </div>
 
-        <label className="flex items-center gap-3 text-xs text-slate-500">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
           <span className="uppercase tracking-[0.2em]">Density</span>
           <input
             type="range"
@@ -794,7 +889,19 @@ export function StepSequencer() {
             className="w-40"
           />
           <span>{randomizeDensity}%</span>
-        </label>
+          <label className="flex items-center gap-2">
+            Seed
+            <input
+              type="number"
+              value={randomizeSeed ?? ""}
+              onChange={(event) =>
+                setRandomizeSeed(event.target.value === "" ? null : Number(event.target.value))
+              }
+              placeholder="auto"
+              className="w-24 rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200"
+            />
+          </label>
+        </div>
 
         <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
           <span className="uppercase tracking-[0.2em]">Quick</span>
@@ -839,14 +946,21 @@ export function StepSequencer() {
               ))}
             </div>
             <div className="mt-2 space-y-1">
-              {grid.map((row, rowIndex) => (
+              {visibleGrid.map((row, rowIndex) => (
                 <div
-                  key={notes[rowIndex]}
+                  key={`${notes[rowIndex]}-${rowIndex}`}
                   className="grid items-center gap-1"
                   style={{ gridTemplateColumns: `repeat(${steps + 1}, minmax(0, 1fr))` }}
                 >
                   <div className="flex items-center gap-1 text-xs font-semibold text-slate-400">
-                    <span className="min-w-[2.5rem]">{notes[rowIndex]}</span>
+                    <button
+                      type="button"
+                      onClick={() => handlePreviewRow(rowIndex)}
+                      className="min-w-[2.5rem] rounded border border-slate-800 bg-slate-950/70 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-300 transition hover:border-cyan-400 hover:text-cyan-200"
+                      title="Preview row"
+                    >
+                      {getRowLabel(rowIndex)}
+                    </button>
                     <button
                       type="button"
                       onClick={() => toggleRowMute(rowIndex)}
@@ -1170,6 +1284,20 @@ export function StepSequencer() {
             />
           </label>
           <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={handleExportPattern}
+              className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-cyan-400"
+            >
+              View JSON
+            </button>
+            <button
+              type="button"
+              onClick={handleCopyJson}
+              className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-cyan-400"
+            >
+              Copy JSON
+            </button>
             <button
               type="button"
               onClick={handleExportPattern}
