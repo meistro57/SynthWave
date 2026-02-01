@@ -109,6 +109,7 @@
 - [ ] Build copy/paste pattern functionality
 - [x] Add note preview on row labels
 - [x] Add octave shift controls
+- [x] Filter main sequencer targets to rack machines
 
 **Data Structure:**
 ```typescript
@@ -229,6 +230,7 @@ abstract class Machine {
 - [x] Add live recording into the step grid
 - [x] Add kit presets (Factory/808/House/Lo-Fi)
 - [x] Add drum sequence preset library (basic + complex)
+- [x] Add kit import/export JSON
 
 **Deliverables:**
 - 8-channel drum machine

@@ -36,6 +36,7 @@ SynthWave is a zero-install, cross-platform music production environment that co
 - **BassLine** - TB-303 style monosynth with slide and accent
 - **BeatBox** - 8-channel sampling drum machine
 - **BeatBox Kits** - Factory, 808, House, Lo-Fi kit presets + pattern library
+- **BeatBox Kit IO** - Export/import kit settings as JSON
 - **PadSynth** - Harmonic table pad synthesizer
 - **FMSynth** - DX-style 3-operator FM synthesis
 - **SawSynth** - Supersaw-type polyphonic synthesizer

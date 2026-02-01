@@ -87,6 +87,7 @@
 - [x] Add octave shift controls
 - [x] Add note preview on row labels
 - [x] Add BeatBox target + row label mapping
+- [x] Filter main sequencer targets to rack machines
 
 ---
 
@@ -130,6 +131,7 @@
 - [x] Add live recording into step grid
 - [x] Add kit presets (Factory/808/House/Lo-Fi)
 - [x] Add drum sequence preset library (basic + complex)
+- [x] Add kit import/export JSON
 
 ### 2.4 FMSynth
 - [x] Implement Tone.FMSynth (3-operator)
