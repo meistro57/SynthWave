@@ -36,7 +36,7 @@ SynthWave is a zero-install, cross-platform music production environment that co
 - **BassLine** - TB-303 style monosynth with slide and accent
 - **BeatBox** - 8-channel sampling drum machine
 - **BeatBox Kits** - Factory, 808, House, Lo-Fi kit presets + pattern library
-- **BeatBox Kit IO** - Export/import kit settings as JSON
+- **BeatBox Kit IO** - Export/import kit settings as JSON, including embedded custom sample audio
 - **PadSynth** - Harmonic table pad synthesizer
 - **FMSynth** - DX-style 3-operator FM synthesis
 - **SawSynth** - Supersaw-type polyphonic synthesizer
@@ -135,6 +135,42 @@ php artisan migrate
 
 # Start Laravel development server
 php artisan serve
+```
+
+### OpenRouter Setup (AI Song Ideas)
+
+1) Copy env template:
+
+```bash
+cp .env.example .env.local
+```
+
+2) Set your OpenRouter key in `.env.local`:
+
+```bash
+OPENROUTER_API_KEY=your_key_here
+OPENROUTER_MODEL=openai/gpt-4o-mini
+OPENROUTER_REFERER=http://localhost:3000
+OPENROUTER_TITLE=SynthWave
+```
+
+3) Use API route:
+
+`POST /api/ai/song-ideas`
+
+Example body:
+
+```json
+{
+  "prompt": "warm lo-fi beat with dreamy pads",
+  "style": "Lo-fi",
+  "mood": "Nostalgic",
+  "bpmMin": 80,
+  "bpmMax": 95,
+  "musicalKey": "D minor",
+  "bars": 16,
+  "candidates": 3
+}
 ```
 
 ---

@@ -230,7 +230,7 @@ abstract class Machine {
 - [x] Add live recording into the step grid
 - [x] Add kit presets (Factory/808/House/Lo-Fi)
 - [x] Add drum sequence preset library (basic + complex)
-- [x] Add kit import/export JSON
+- [x] Add kit import/export JSON with embedded custom sample audio
 
 **Deliverables:**
 - 8-channel drum machine

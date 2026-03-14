@@ -131,7 +131,7 @@
 - [x] Add live recording into step grid
 - [x] Add kit presets (Factory/808/House/Lo-Fi)
 - [x] Add drum sequence preset library (basic + complex)
-- [x] Add kit import/export JSON
+- [x] Add kit import/export JSON with embedded custom sample audio
 
 ### 2.4 FMSynth
 - [x] Implement Tone.FMSynth (3-operator)

@@ -187,11 +187,16 @@ class MockToneAudioBuffer {
   reverse = false;
   loaded = true;
   duration = 1;
+  audioBuffer?: AudioBuffer;
   constructor(options?: { url?: AudioBuffer; reverse?: boolean }) {
     if (options?.reverse !== undefined) this.reverse = options.reverse;
-    if (options?.url && "duration" in options.url) this.duration = options.url.duration;
+    if (options?.url && "duration" in options.url) {
+      this.duration = options.url.duration;
+      this.audioBuffer = options.url;
+    }
   }
   set = jest.fn();
+  get = jest.fn(() => this.audioBuffer);
 }
 
 class MockPlayer extends MockToneAudioNode {

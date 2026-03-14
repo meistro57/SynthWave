@@ -6,6 +6,7 @@ import * as Tone from "tone";
 
 import {
   getBeatBoxFactorySamples,
+  getBeatBoxSampleBuffer,
   initBeatBox,
   setBeatBoxChannelDelaySend,
   setBeatBoxChannelPan,
@@ -31,6 +32,104 @@ const CHANNEL_COUNT = 8;
 const FACTORY_KIT_NAME = "Factory Kit";
 
 type GridStep = number | [number, number];
+type KitChannelPreset = {
+  sample: string;
+  volume: number;
+  tune: number;
+  pan: number;
+  delay: number;
+  reverb: number;
+  sampleDataUrl?: string;
+};
+type KitPreset = { name: string; channels: KitChannelPreset[] };
+
+function normalizeFactorySampleName(sampleName: string) {
+  return sampleName.replace(/^(Factory|Kit)\s+/i, "").trim();
+}
+
+function isFactorySampleName(sampleName: string, factorySampleNames: Set<string>) {
+  return factorySampleNames.has(normalizeFactorySampleName(sampleName));
+}
+
+function audioBufferToWav(buffer: AudioBuffer) {
+  const bytesPerSample = 2;
+  const blockAlign = buffer.numberOfChannels * bytesPerSample;
+  const dataSize = buffer.length * blockAlign;
+  const wav = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(wav);
+
+  let offset = 0;
+  const writeString = (value: string) => {
+    for (let index = 0; index < value.length; index += 1) {
+      view.setUint8(offset + index, value.charCodeAt(index));
+    }
+    offset += value.length;
+  };
+
+  writeString("RIFF");
+  view.setUint32(offset, 36 + dataSize, true);
+  offset += 4;
+  writeString("WAVE");
+  writeString("fmt ");
+  view.setUint32(offset, 16, true);
+  offset += 4;
+  view.setUint16(offset, 1, true);
+  offset += 2;
+  view.setUint16(offset, buffer.numberOfChannels, true);
+  offset += 2;
+  view.setUint32(offset, buffer.sampleRate, true);
+  offset += 4;
+  view.setUint32(offset, buffer.sampleRate * blockAlign, true);
+  offset += 4;
+  view.setUint16(offset, blockAlign, true);
+  offset += 2;
+  view.setUint16(offset, bytesPerSample * 8, true);
+  offset += 2;
+  writeString("data");
+  view.setUint32(offset, dataSize, true);
+  offset += 4;
+
+  const channels = Array.from({ length: buffer.numberOfChannels }, (_, index) =>
+    buffer.getChannelData(index),
+  );
+  for (let sampleIndex = 0; sampleIndex < buffer.length; sampleIndex += 1) {
+    for (let channelIndex = 0; channelIndex < buffer.numberOfChannels; channelIndex += 1) {
+      const sample = Math.max(-1, Math.min(1, channels[channelIndex][sampleIndex] ?? 0));
+      view.setInt16(
+        offset,
+        sample < 0 ? sample * 0x8000 : sample * 0x7fff,
+        true,
+      );
+      offset += bytesPerSample;
+    }
+  }
+
+  return wav;
+}
+
+async function audioBufferToDataUrl(buffer: AudioBuffer) {
+  const blob = new Blob([audioBufferToWav(buffer)], { type: "audio/wav" });
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Failed to serialize sample audio."));
+    reader.onloadend = () => {
+      const result = reader.result;
+      if (typeof result !== "string") {
+        reject(new Error("Failed to serialize sample audio."));
+        return;
+      }
+      resolve(result);
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function dataUrlToAudioBuffer(dataUrl: string) {
+  const response = await fetch(dataUrl);
+  const arrayBuffer = await response.arrayBuffer();
+  await Tone.start();
+  return await Tone.getContext().rawContext.decodeAudioData(arrayBuffer.slice(0));
+}
 
 function createGrid(rows: number, cols: number, fill = 0) {
   return Array.from({ length: rows }, () => Array.from({ length: cols }, () => fill));
@@ -230,13 +329,26 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
 
   const [currentStep, setCurrentStep] = useState(0);
   const [presetName, setPresetName] = useState("BeatBox Pattern");
-  const [patterns, setPatterns] = useState<Record<string, BeatBoxPattern>>({});
+  const [patterns, setPatterns] = useState<Record<string, BeatBoxPattern>>(() => {
+    const stored = loadBeatBoxPatterns();
+    const presets = buildPresetPatterns(channels);
+    const merged = { ...presets, ...stored };
+    if (
+      typeof window !== "undefined" &&
+      Object.keys(merged).length !== Object.keys(stored).length
+    ) {
+      saveBeatBoxPatterns(merged);
+    }
+    return merged;
+  });
   const [selectedPattern, setSelectedPattern] = useState<string>("");
   const [renameValue, setRenameValue] = useState<string>("");
   const [exportText, setExportText] = useState<string>("");
   const [status, setStatus] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [selectedKit, setSelectedKit] = useState(FACTORY_KIT_NAME);
+  const [kitJson, setKitJson] = useState("");
+  const [customKits, setCustomKits] = useState<KitPreset[]>([]);
 
   const scheduleIdRef = useRef<number | null>(null);
   const stepRef = useRef(0);
@@ -245,7 +357,6 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
   const stepsRef = useRef(steps);
   const swingRef = useRef(swing);
   const humanizeRef = useRef(humanizeMs);
-  const presetsLoadedRef = useRef(false);
   const factorySamplesRef = useRef(getBeatBoxFactorySamples());
 
   useEffect(() => {
@@ -281,15 +392,6 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
   }, [setChannelSampleName]);
 
   useEffect(() => {
-    if (presetsLoadedRef.current) return;
-    presetsLoadedRef.current = true;
-    const stored = loadBeatBoxPatterns();
-    const presets = buildPresetPatterns(channelsRef.current);
-    const merged = { ...presets, ...stored };
-    if (Object.keys(merged).length !== Object.keys(stored).length) {
-      saveBeatBoxPatterns(merged);
-    }
-    setPatterns(merged);
     setSlots(loadBeatBoxSlots());
   }, [setSlots]);
 
@@ -314,7 +416,6 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
         scheduleIdRef.current = null;
       }
       stepRef.current = 0;
-      setCurrentStep(0);
       return;
     }
 
@@ -383,7 +484,8 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
       const existing = prev[selectedPattern];
       if (!existing) return prev;
       const nextName = renameValue.trim();
-      const { [selectedPattern]: _, ...rest } = prev;
+      const rest = { ...prev };
+      delete rest[selectedPattern];
       const next = { ...rest, [nextName]: { ...existing, name: nextName } };
       saveBeatBoxPatterns(next);
       return next;
@@ -397,7 +499,8 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
   const handleDeletePattern = () => {
     if (!selectedPattern) return;
     setPatterns((prev) => {
-      const { [selectedPattern]: _, ...rest } = prev;
+      const rest = { ...prev };
+      delete rest[selectedPattern];
       saveBeatBoxPatterns(rest);
       return rest;
     });
@@ -443,9 +546,39 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
     try {
       const parsed = JSON.parse(exportText) as BeatBoxPattern;
       if (!parsed.grid || !parsed.channels) return;
-      loadPattern(parsed);
-      setPresetName(parsed.name);
-      setStatus(`Imported ${parsed.name}.`);
+      const allowedSteps = [8, 16, 32] as const;
+      const nextSteps = allowedSteps.includes(parsed.steps as (typeof allowedSteps)[number])
+        ? parsed.steps
+        : 16;
+      const normalizedGrid = Array.from({ length: CHANNEL_COUNT }, (_, row) => {
+        const existing = parsed.grid[row] ?? [];
+        return Array.from({ length: nextSteps }, (_, col) => existing[col] ?? 0);
+      });
+      const baseChannels = channelsRef.current ?? channels;
+      const normalizedChannels = Array.from({ length: CHANNEL_COUNT }, (_, index) => {
+        const incoming = parsed.channels?.[index] ?? {};
+        const fallback = baseChannels[index];
+        return {
+          name: incoming.name ?? fallback?.name ?? `Pad ${index + 1}`,
+          volume: typeof incoming.volume === "number" ? incoming.volume : fallback?.volume ?? 0.8,
+          pan: typeof incoming.pan === "number" ? incoming.pan : fallback?.pan ?? 0,
+          tune: typeof incoming.tune === "number" ? incoming.tune : fallback?.tune ?? 0,
+          delaySend:
+            typeof incoming.delaySend === "number" ? incoming.delaySend : fallback?.delaySend ?? 0,
+          reverbSend:
+            typeof incoming.reverbSend === "number" ? incoming.reverbSend : fallback?.reverbSend ?? 0,
+          sampleName: incoming.sampleName ?? fallback?.sampleName ?? "Factory",
+        };
+      });
+      const normalized: BeatBoxPattern = {
+        name: parsed.name ?? "Imported Pattern",
+        steps: nextSteps,
+        grid: normalizedGrid,
+        channels: normalizedChannels,
+      };
+      loadPattern(normalized);
+      setPresetName(normalized.name);
+      setStatus(`Imported ${normalized.name}.`);
     } catch {
       setStatus("Invalid JSON.");
     }
@@ -486,14 +619,15 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
     event.preventDefault();
   };
 
-  const handlePadTrigger = (rowIndex: number, velocity = 0.9) => {
+  const handlePadTrigger = async (rowIndex: number, velocity = 0.9) => {
+    await initBeatBox();
     triggerBeatBox(rowIndex, undefined, velocity);
     if (!isRecording || !isPlaying) return;
     const step = stepRef.current % stepsRef.current;
     setVelocity(rowIndex, step, velocity);
   };
 
-  const kitPresets = useMemo(
+  const kitPresets = useMemo<KitPreset[]>(
     () => [
       {
         name: "Factory Kit",
@@ -551,17 +685,189 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
     [],
   );
 
+  const serializeKit = async () => {
+    const factorySampleNames = new Set(factorySamplesRef.current.map((sample) => sample.name));
+    const serializedChannels = await Promise.all(
+      channels.map(async (channel, index) => {
+        const payload: {
+          name: string;
+          sampleName: string;
+          volume: number;
+          pan: number;
+          tune: number;
+          delaySend: number;
+          reverbSend: number;
+          sampleDataUrl?: string;
+        } = {
+          name: channel.name,
+          sampleName: channel.sampleName,
+          volume: channel.volume,
+          pan: channel.pan,
+          tune: channel.tune,
+          delaySend: channel.delaySend,
+          reverbSend: channel.reverbSend,
+        };
+
+        if (!isFactorySampleName(channel.sampleName, factorySampleNames)) {
+          const buffer = getBeatBoxSampleBuffer(index);
+          if (buffer) {
+            payload.sampleDataUrl = await audioBufferToDataUrl(buffer);
+          }
+        }
+
+        return payload;
+      }),
+    );
+
+    return JSON.stringify(
+      {
+        name: selectedKit,
+        steps,
+        channels: serializedChannels,
+      },
+      null,
+      2,
+    );
+  };
+
+  const handleExportKit = async () => {
+    try {
+      setKitJson(await serializeKit());
+    } catch {
+      setStatus("Failed to export kit audio.");
+    }
+  };
+
+  const handleCopyKitJson = async () => {
+    let payload = kitJson.trim();
+    if (!payload) {
+      try {
+        payload = await serializeKit();
+      } catch {
+        setStatus("Failed to export kit audio.");
+        return;
+      }
+    }
+    setKitJson(payload);
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(payload);
+      } catch {
+        // ignore clipboard errors
+      }
+    }
+  };
+
+  const handleImportKit = async () => {
+    if (!kitJson.trim()) return;
+    try {
+      const parsed = JSON.parse(kitJson) as {
+        name?: string;
+        channels?: Array<{
+          name?: string;
+          sampleName?: string;
+          volume?: number;
+          pan?: number;
+          tune?: number;
+          delaySend?: number;
+          reverbSend?: number;
+          sampleDataUrl?: string;
+        }>;
+      };
+      if (!parsed.channels || parsed.channels.length === 0) return;
+      await initBeatBox();
+      const importedName = parsed.name ?? "Imported Kit";
+      const sampleByName = new Map(
+        factorySamplesRef.current.map((sample) => [sample.name, sample.buffer]),
+      );
+      setSelectedKit(importedName);
+      setCustomKits((prev) => {
+        const next = prev.filter((kit) => kit.name !== importedName);
+        return [
+          ...next,
+          {
+            name: importedName,
+            channels: parsed.channels.map((channel, index) => ({
+              sample:
+                (typeof channel.sampleName === "string"
+                  ? normalizeFactorySampleName(channel.sampleName)
+                  : undefined) ??
+                channels[index]?.name ??
+                `Pad ${index + 1}`,
+              volume: channel.volume ?? channels[index]?.volume ?? 0.8,
+              tune: channel.tune ?? channels[index]?.tune ?? 0,
+              pan: channel.pan ?? channels[index]?.pan ?? 0,
+              delay: channel.delaySend ?? channels[index]?.delaySend ?? 0,
+              reverb: channel.reverbSend ?? channels[index]?.reverbSend ?? 0,
+              sampleDataUrl: channel.sampleDataUrl,
+            })),
+          },
+        ];
+      });
+      for (const [index, channel] of parsed.channels.slice(0, CHANNEL_COUNT).entries()) {
+        if (!channel) continue;
+        if (typeof channel.volume === "number") {
+          setChannelVolume(index, channel.volume);
+          setBeatBoxChannelVolume(index, channel.volume);
+        }
+        if (typeof channel.pan === "number") {
+          setChannelPan(index, channel.pan);
+          setBeatBoxChannelPan(index, channel.pan);
+        }
+        if (typeof channel.tune === "number") {
+          setChannelTune(index, channel.tune);
+          setBeatBoxChannelTune(index, channel.tune);
+        }
+        if (typeof channel.delaySend === "number") {
+          setChannelDelaySend(index, channel.delaySend);
+          setBeatBoxChannelDelaySend(index, channel.delaySend);
+        }
+        if (typeof channel.reverbSend === "number") {
+          setChannelReverbSend(index, channel.reverbSend);
+          setBeatBoxChannelReverbSend(index, channel.reverbSend);
+        }
+        if (typeof channel.sampleName === "string") {
+          setChannelSampleName(index, channel.sampleName);
+          let buffer = sampleByName.get(normalizeFactorySampleName(channel.sampleName));
+          if (!buffer && typeof channel.sampleDataUrl === "string") {
+            buffer = await dataUrlToAudioBuffer(channel.sampleDataUrl);
+          }
+          if (buffer) {
+            await setBeatBoxSample(index, buffer);
+          }
+        }
+      }
+      setStatus(`Imported ${parsed.name ?? "kit"}.`);
+    } catch {
+      setStatus("Invalid kit JSON.");
+    }
+  };
+
+  const allKits = useMemo(() => {
+    const deduped = new Map<string, KitPreset>();
+    kitPresets.forEach((kit) => deduped.set(kit.name, kit));
+    customKits.forEach((kit) => deduped.set(kit.name, kit));
+    return Array.from(deduped.values());
+  }, [kitPresets, customKits]);
+
   const handleApplyKit = async () => {
     await initBeatBox();
-    const preset = kitPresets.find((kit) => kit.name === selectedKit);
+    const preset = allKits.find((kit) => kit.name === selectedKit);
     if (!preset) return;
     const samples = factorySamplesRef.current;
     const sampleByName = new Map(samples.map((sample) => [sample.name, sample.buffer]));
-    preset.channels.forEach((channel, index) => {
-      const buffer = sampleByName.get(channel.sample);
+    for (const [index, channel] of preset.channels.entries()) {
+      const resolvedSampleName = normalizeFactorySampleName(channel.sample);
+      let buffer = sampleByName.get(resolvedSampleName);
+      if (!buffer && channel.sampleDataUrl) {
+        buffer = await dataUrlToAudioBuffer(channel.sampleDataUrl);
+      }
       if (buffer) {
-        setBeatBoxSample(index, buffer);
-        setChannelSampleName(index, `Kit ${channel.sample}`);
+        await setBeatBoxSample(index, buffer);
+        setChannelSampleName(
+          index,
+          channel.sampleDataUrl ? channel.sample : `Kit ${resolvedSampleName}`,
+        );
       }
       setChannelVolume(index, channel.volume);
       setBeatBoxChannelVolume(index, channel.volume);
@@ -573,7 +879,7 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
       setBeatBoxChannelDelaySend(index, channel.delay);
       setChannelReverbSend(index, channel.reverb);
       setBeatBoxChannelReverbSend(index, channel.reverb);
-    });
+    }
     setStatus(`Loaded ${preset.name}.`);
   };
 
@@ -634,7 +940,7 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
             onChange={(event) => setSelectedKit(event.target.value)}
             className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200"
           >
-            {kitPresets.map((kit) => (
+            {allKits.map((kit) => (
               <option key={kit.name} value={kit.name}>
                 {kit.name}
               </option>
@@ -779,7 +1085,41 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
           </div>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
+        <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Kit Import / Export</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleExportKit}
+              className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-cyan-400"
+            >
+              View Kit JSON
+            </button>
+            <button
+              type="button"
+              onClick={handleCopyKitJson}
+              className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-cyan-400"
+            >
+              Copy Kit JSON
+            </button>
+            <button
+              type="button"
+              onClick={handleImportKit}
+              className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-cyan-400"
+            >
+              Import Kit
+            </button>
+          </div>
+          <textarea
+            value={kitJson}
+            onChange={(event) => setKitJson(event.target.value)}
+            rows={6}
+            className="mt-3 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-200"
+            placeholder="Paste kit JSON here"
+          />
+        </div>
+
+        <div className="space-y-4" onPointerDown={(event) => event.stopPropagation()}>
           <div className="space-y-3">
             <div className="grid gap-2">
               {grid.map((row, rowIndex) => (
@@ -818,9 +1158,13 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
             </div>
           </div>
 
-          <div className="space-y-4">
-            {channels.map((channel, index) => (
-              <div key={channel.name} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+          <div className="theme-scrollbar overflow-x-auto">
+            <div className="flex min-w-max gap-4">
+              {channels.map((channel, index) => (
+                <div
+                  key={channel.name}
+                  className="w-64 flex-shrink-0 rounded-2xl border border-slate-800 bg-slate-950/70 p-4"
+                >
                 <div className="flex items-center justify-between">
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{channel.name}</p>
                   <label className="cursor-pointer text-xs text-cyan-200 underline">
@@ -922,8 +1266,9 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
                     />
                   </label>
                 </div>
-              </div>
-            ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

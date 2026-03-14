@@ -212,6 +212,11 @@ export async function setBeatBoxSample(index: number, buffer: AudioBuffer) {
   channel.player.buffer = new Tone.ToneAudioBuffer(buffer);
 }
 
+export function getBeatBoxSampleBuffer(index: number) {
+  const channel = channels?.[index];
+  return channel?.player.buffer.get() ?? null;
+}
+
 export async function triggerBeatBox(index: number, time?: Tone.Unit.Time, velocity = 0.9) {
   await initBeatBox();
   const beatChannels = ensureBeatBox();
@@ -251,11 +256,15 @@ export function setBeatBoxPan(pan: number) {
 export function setBeatBoxChannelDelaySend(index: number, level: number) {
   pendingDelaySends[index] = Math.max(0, Math.min(1, level));
   if (!channels) return;
-  channels[index]?.delaySend && (channels[index].delaySend.gain.value = pendingDelaySends[index]);
+  const channel = channels[index];
+  if (!channel) return;
+  channel.delaySend.gain.value = pendingDelaySends[index];
 }
 
 export function setBeatBoxChannelReverbSend(index: number, level: number) {
   pendingReverbSends[index] = Math.max(0, Math.min(1, level));
   if (!channels) return;
-  channels[index]?.reverbSend && (channels[index].reverbSend.gain.value = pendingReverbSends[index]);
+  const channel = channels[index];
+  if (!channel) return;
+  channel.reverbSend.gain.value = pendingReverbSends[index];
 }
