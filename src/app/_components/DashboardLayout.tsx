@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Responsive, WidthProvider, type Layout, type Layouts } from "react-grid-layout";
 
 import { AudioTest } from "./AudioTest";
@@ -37,7 +37,7 @@ type CardId = (typeof CARD_IDS)[number];
 type CardDefinition = {
   id: CardId;
   title: string;
-  component: JSX.Element;
+  component: React.ReactElement;
 };
 
 const CARD_DEFINITIONS: CardDefinition[] = [

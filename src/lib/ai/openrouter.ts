@@ -1,5 +1,7 @@
 import "server-only";
 
+import { readSettings } from "@/lib/config/settings";
+
 type OpenRouterMessage = {
   role: "system" | "user" | "assistant";
   content: string;
@@ -23,12 +25,32 @@ type OpenRouterResponse = {
   };
 };
 
-function getRequiredEnv(name: string) {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
+export type OpenRouterConfig = {
+  apiKey: string;
+  model: string;
+  referer: string;
+  title: string;
+};
+
+export async function resolveOpenRouterConfig(): Promise<OpenRouterConfig> {
+  const stored = await readSettings();
+
+  const apiKey =
+    stored.openrouterApiKey ?? process.env.OPENROUTER_API_KEY ?? "";
+  const model =
+    stored.openrouterModel ?? process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
+  const referer =
+    stored.openrouterReferer ?? process.env.OPENROUTER_REFERER ?? "http://localhost:3000";
+  const title =
+    stored.openrouterTitle ?? process.env.OPENROUTER_TITLE ?? "SynthWave";
+
+  if (!apiKey) {
+    throw new Error(
+      "OpenRouter API key is not configured. Visit /admin to set it.",
+    );
   }
-  return value;
+
+  return { apiKey, model, referer, title };
 }
 
 function extractJsonObject(text: string) {
@@ -41,9 +63,7 @@ function extractJsonObject(text: string) {
 }
 
 export async function requestOpenRouterJson<T>(request: OpenRouterRequest): Promise<T> {
-  const apiKey = getRequiredEnv("OPENROUTER_API_KEY");
-  const referer = process.env.OPENROUTER_REFERER ?? "http://localhost:3000";
-  const title = process.env.OPENROUTER_TITLE ?? "SynthWave";
+  const { apiKey, referer, title } = await resolveOpenRouterConfig();
 
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -79,4 +99,3 @@ export async function requestOpenRouterJson<T>(request: OpenRouterRequest): Prom
     return JSON.parse(extractJsonObject(content)) as T;
   }
 }
-

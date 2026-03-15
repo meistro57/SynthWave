@@ -775,6 +775,7 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
         }>;
       };
       if (!parsed.channels || parsed.channels.length === 0) return;
+      const kitChannels = parsed.channels;
       await initBeatBox();
       const importedName = parsed.name ?? "Imported Kit";
       const sampleByName = new Map(
@@ -787,7 +788,7 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
           ...next,
           {
             name: importedName,
-            channels: parsed.channels.map((channel, index) => ({
+            channels: kitChannels.map((channel, index) => ({
               sample:
                 (typeof channel.sampleName === "string"
                   ? normalizeFactorySampleName(channel.sampleName)
@@ -804,7 +805,7 @@ export function BeatBox({ embedded = false }: { embedded?: boolean }) {
           },
         ];
       });
-      for (const [index, channel] of parsed.channels.slice(0, CHANNEL_COUNT).entries()) {
+      for (const [index, channel] of kitChannels.slice(0, CHANNEL_COUNT).entries()) {
         if (!channel) continue;
         if (typeof channel.volume === "number") {
           setChannelVolume(index, channel.volume);

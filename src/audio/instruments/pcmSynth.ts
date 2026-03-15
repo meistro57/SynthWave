@@ -236,8 +236,9 @@ export async function triggerPCMSynth(
     return;
   }
 
-  const hasSampler = typeof (sampler as { has?: (note: string) => boolean }).has === "function";
-  if (hasSampler && !(sampler as { has: (note: string) => boolean }).has(note)) {
+  const samplerAny = sampler as unknown as { has?: (note: string) => boolean };
+  const hasSampler = typeof samplerAny.has === "function";
+  if (hasSampler && !(samplerAny as { has: (note: string) => boolean }).has(note)) {
     return;
   }
 

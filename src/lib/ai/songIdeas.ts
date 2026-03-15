@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requestOpenRouterJson } from "@/lib/ai/openrouter";
+import { requestOpenRouterJson, resolveOpenRouterConfig } from "@/lib/ai/openrouter";
 
 export type SongIdeaRequest = {
   prompt: string;
@@ -61,7 +61,7 @@ export async function generateSongIdeasWithOpenRouter(
   input: SongIdeaRequest,
 ): Promise<SongIdeaCandidate[]> {
   const candidates = clamp(input.candidates ?? 3, 1, 5);
-  const model = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
+  const { model } = await resolveOpenRouterConfig();
 
   const systemPrompt =
     "You are a music producer assistant for a browser DAW. " +

@@ -10,7 +10,7 @@ import { triggerFMSynth } from "@/audio/instruments/fmSynth";
 import { triggerPCMSynth } from "@/audio/instruments/pcmSynth";
 import { setSubSynthPan, triggerSubSynth } from "@/audio/instruments/subSynth";
 import { useRackStore } from "@/store/useRackStore";
-import { useMachineTargetStore } from "@/store/useMachineTargetStore";
+import { useMachineTargetStore, type MachineTarget } from "@/store/useMachineTargetStore";
 import {
   PatternSlot,
   SequencerPattern,
@@ -393,7 +393,7 @@ export function StepSequencer() {
     if (availableTargets.length === 0) return;
     const isValid = availableTargets.some((option) => option.type === target);
     if (!isValid) {
-      useMachineTargetStore.getState().setTarget(availableTargets[0].type);
+      useMachineTargetStore.getState().setTarget(availableTargets[0].type as MachineTarget);
     }
   }, [availableTargets, target]);
 

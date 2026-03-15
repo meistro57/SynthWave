@@ -69,7 +69,7 @@ export function MachineRack() {
     addMachine(selectedType);
   };
 
-  const handleDragStart = (id: string) => (event: DragEvent<HTMLDivElement>) => {
+  const handleDragStart = (id: string) => (event: DragEvent<HTMLElement>) => {
     setDraggingId(id);
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", id);
@@ -217,7 +217,7 @@ function MachineRow({
   onClone: () => void;
   onRename: (name: string) => void;
   canClone: boolean;
-  onDragStart: (event: DragEvent<HTMLButtonElement>) => void;
+  onDragStart: (event: DragEvent<HTMLElement>) => void;
   onDragEnd: () => void;
 }) {
   const [localName, setLocalName] = useState(machine.name);

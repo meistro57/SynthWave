@@ -26,9 +26,11 @@ function createDefaultSlots(slotCount: number): EffectSlotState[] {
 }
 
 function loadSlotsForTarget(target: (typeof TARGETS)[number]["id"]) {
+  if (typeof window === "undefined") {
+    return createDefaultSlots(target === "master" ? 4 : 2);
+  }
   const chain = target === "master" ? getMasterEffects() : getMachineEffectChain(target);
   const defaultSlots = createDefaultSlots(chain.slots.length);
-  if (typeof window === "undefined") return defaultSlots;
   const raw = window.localStorage.getItem(storageKey(target));
   if (!raw) return defaultSlots;
   try {
