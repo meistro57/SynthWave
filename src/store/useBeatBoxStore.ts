@@ -132,7 +132,7 @@ function resizeGrid(grid: BeatBoxGrid, rows: number, cols: number) {
   });
 }
 
-export const useBeatBoxStore = create<BeatBoxState>((set, get) => ({
+export const useBeatBoxStore = create<BeatBoxState>((set) => ({
   steps: DEFAULT_STEPS,
   grid: createGrid(CHANNEL_COUNT, DEFAULT_STEPS, 0),
   channels: DEFAULT_CHANNELS,

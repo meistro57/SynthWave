@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Responsive, WidthProvider, type Layout, type Layouts } from "react-grid-layout";
 
 import { AudioTest } from "./AudioTest";
@@ -212,7 +212,7 @@ export function DashboardLayout() {
     setLayouts(DEFAULT_LAYOUTS);
   };
 
-  const expandToContent = (id: CardId) => {
+  const expandToContent = useCallback((id: CardId) => {
     const content = contentRefs.current[id];
     if (!content) return;
     const contentHeight = content.scrollHeight;
@@ -232,7 +232,7 @@ export function DashboardLayout() {
       if (ready) persistLayouts(nextLayouts);
       return nextLayouts;
     });
-  };
+  }, [breakpoint, ready]);
 
   const cards = useMemo(() => {
     return CARD_DEFINITIONS.map((card) => (
@@ -256,7 +256,7 @@ export function DashboardLayout() {
         </div>
       </div>
     ));
-  }, [ready, breakpoint]);
+  }, [expandToContent]);
 
   return (
     <div className="mx-auto flex w-full max-w-none flex-col gap-10 px-6 py-16">

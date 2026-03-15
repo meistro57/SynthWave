@@ -99,6 +99,24 @@ type FMSynthProps = {
   embedded?: boolean;
 };
 
+function getDefaultMatrixPreset() {
+  return MATRIX_PRESETS[0];
+}
+
+function loadFMSynthPresets() {
+  if (typeof window === "undefined") return {};
+  const raw = window.localStorage.getItem("synthwave.fmsynth.presets");
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as Record<
+      string,
+      { op1: OperatorSettings; op2: OperatorSettings; op3: OperatorSettings; modMatrix: ModMatrix }
+    >;
+  } catch {
+    return {};
+  }
+}
+
 export function FMSynth({ embedded = false }: FMSynthProps) {
   const [ready, setReady] = useState(false);
   const [carrierOsc, setCarrierOsc] = useState<Tone.ToneOscillatorType>("sine");
@@ -123,17 +141,15 @@ export function FMSynth({ embedded = false }: FMSynthProps) {
     release: 0.4,
   });
   const [ratios, setRatios] = useState<[number, number, number]>([1, 2, 3]);
-  const [modMatrix, setModMatrix] = useState<ModMatrix>({
-    op1ToOp2: 0,
-    op1ToOp3: 0,
-    op2ToOp1: 0.6,
-    op2ToOp3: 0,
-    op3ToOp1: 0.2,
-    op3ToOp2: 0.3,
-  });
+  const [modMatrix, setModMatrix] = useState<ModMatrix>(() => getDefaultMatrixPreset().matrix);
   const [presetName, setPresetName] = useState("");
-  const [presets, setPresets] = useState<Record<string, { op1: OperatorSettings; op2: OperatorSettings; op3: OperatorSettings; modMatrix: ModMatrix }>>({});
-  const [matrixPreset, setMatrixPreset] = useState<string>("Simple FM");
+  const [presets, setPresets] = useState<
+    Record<
+      string,
+      { op1: OperatorSettings; op2: OperatorSettings; op3: OperatorSettings; modMatrix: ModMatrix }
+    >
+  >(() => loadFMSynthPresets());
+  const [matrixPreset, setMatrixPreset] = useState<string>(() => getDefaultMatrixPreset().name);
   const [selectedAlgorithm, setSelectedAlgorithm] = useState(ALGORITHMS[0].name);
 
   useEffect(() => {
@@ -175,17 +191,6 @@ export function FMSynth({ embedded = false }: FMSynthProps) {
 
   const algOptions = useMemo(() => ALGORITHMS.map((alg) => alg.name), []);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const raw = window.localStorage.getItem("synthwave.fmsynth.presets");
-    if (!raw) return;
-    try {
-      setPresets(JSON.parse(raw));
-    } catch {
-      setPresets({});
-    }
-  }, []);
-
   const handleSavePreset = () => {
     if (!presetName.trim()) return;
     const next = {
@@ -221,10 +226,6 @@ export function FMSynth({ embedded = false }: FMSynthProps) {
     setMatrixPreset(name);
     setModMatrix(preset.matrix);
   };
-
-  useEffect(() => {
-    applyMatrixPreset(matrixPreset);
-  }, []);
 
   return (
     <section
@@ -290,7 +291,7 @@ export function FMSynth({ embedded = false }: FMSynthProps) {
                   <div className="rounded-lg border border-slate-800 px-2 py-1">Op2</div>
                   <div className="rounded-lg border border-slate-800 px-2 py-1">Op3</div>
                 </div>
-                {(["op1", "op2", "op3"] as const).map((source, rowIndex) => (
+                {(["op1", "op2", "op3"] as const).map((source) => (
                   <div
                     key={source}
                     className="mt-2 grid grid-cols-[80px_repeat(3,1fr)] items-center gap-2"
@@ -298,7 +299,7 @@ export function FMSynth({ embedded = false }: FMSynthProps) {
                     <div className="rounded-lg border border-slate-800 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
                       {source}
                     </div>
-                    {(["op1", "op2", "op3"] as const).map((targetOp, colIndex) => {
+                    {(["op1", "op2", "op3"] as const).map((targetOp) => {
                       const fieldMap: Record<string, keyof ModMatrix> = {
                         "op1-op2": "op1ToOp2",
                         "op1-op3": "op1ToOp3",

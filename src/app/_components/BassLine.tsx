@@ -34,6 +34,30 @@ type BassLinePattern = {
   };
 };
 
+function loadBassLinePatterns(): Record<string, BassLinePattern> {
+  if (typeof window === "undefined") return {};
+  const raw = window.localStorage.getItem(PATTERN_STORAGE_KEY);
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as Record<string, BassLinePattern>;
+  } catch {
+    return {};
+  }
+}
+
+function loadBassLineSlots(): Record<(typeof SLOT_LABELS)[number], BassLinePattern | null> {
+  if (typeof window === "undefined") {
+    return { A: null, B: null, C: null, D: null };
+  }
+  const raw = window.localStorage.getItem(SLOT_STORAGE_KEY);
+  if (!raw) return { A: null, B: null, C: null, D: null };
+  try {
+    return JSON.parse(raw) as Record<(typeof SLOT_LABELS)[number], BassLinePattern | null>;
+  } catch {
+    return { A: null, B: null, C: null, D: null };
+  }
+}
+
 export function BassLine({ embedded = false }: { embedded?: boolean }) {
   const { isPlaying, swing, humanizeMs } = useTransportStore();
   const [ready, setReady] = useState(false);
@@ -61,14 +85,13 @@ export function BassLine({ embedded = false }: { embedded?: boolean }) {
     Array.from({ length: steps }, () => false),
   );
   const [patternName, setPatternName] = useState("BassLine Pattern");
-  const [patterns, setPatterns] = useState<Record<string, BassLinePattern>>({});
+  const [patterns, setPatterns] = useState<Record<string, BassLinePattern>>(
+    () => loadBassLinePatterns(),
+  );
   const [selectedPattern, setSelectedPattern] = useState<string>("");
-  const [slots, setSlots] = useState<Record<(typeof SLOT_LABELS)[number], BassLinePattern | null>>({
-    A: null,
-    B: null,
-    C: null,
-    D: null,
-  });
+  const [slots, setSlots] = useState<Record<(typeof SLOT_LABELS)[number], BassLinePattern | null>>(
+    () => loadBassLineSlots(),
+  );
   const [currentSlot, setCurrentSlot] = useState<(typeof SLOT_LABELS)[number]>("A");
   const [importText, setImportText] = useState("");
 
@@ -110,28 +133,6 @@ export function BassLine({ embedded = false }: { embedded?: boolean }) {
       glide,
     });
   }, [oscType, envelope, filterCutoff, filterResonance, accent, glide]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const raw = window.localStorage.getItem(PATTERN_STORAGE_KEY);
-    if (!raw) return;
-    try {
-      setPatterns(JSON.parse(raw));
-    } catch {
-      setPatterns({});
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const raw = window.localStorage.getItem(SLOT_STORAGE_KEY);
-    if (!raw) return;
-    try {
-      setSlots(JSON.parse(raw));
-    } catch {
-      setSlots({ A: null, B: null, C: null, D: null });
-    }
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

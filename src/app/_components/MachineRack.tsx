@@ -150,11 +150,8 @@ export function MachineRack() {
             machines.map((machine) => (
               <div
                 key={machine.id}
-                draggable
-                onDragStart={handleDragStart(machine.id)}
                 onDragOver={handleDragOver(machine.id)}
                 onDrop={handleDrop(machine.id)}
-                onDragEnd={handleDragEnd}
                 className={getMachineCardClasses(machine.type, dragOverId === machine.id)}
               >
                 <MachineRow
@@ -165,6 +162,8 @@ export function MachineRack() {
                   onClone={() => cloneMachine(machine.id)}
                   onRename={(name) => renameMachine(machine.id, name)}
                   canClone={canAddMachine(machine.type, machines)}
+                  onDragStart={handleDragStart(machine.id)}
+                  onDragEnd={handleDragEnd}
                 />
                 {machine.type === "subsynth" && (
                   <div className="mt-4">
@@ -208,6 +207,8 @@ function MachineRow({
   onClone,
   onRename,
   canClone,
+  onDragStart,
+  onDragEnd,
 }: {
   machine: MachineState;
   onMute: () => void;
@@ -216,15 +217,15 @@ function MachineRow({
   onClone: () => void;
   onRename: (name: string) => void;
   canClone: boolean;
+  onDragStart: (event: DragEvent<HTMLButtonElement>) => void;
+  onDragEnd: () => void;
 }) {
   const [localName, setLocalName] = useState(machine.name);
 
-  useEffect(() => {
-    setLocalName(machine.name);
-  }, [machine.name]);
-
   const handleBlur = () => {
+    const normalizedName = localName.trim() || machine.name;
     onRename(localName);
+    setLocalName(normalizedName);
   };
 
   return (
@@ -289,9 +290,15 @@ function MachineRow({
         >
           Remove
         </button>
-        <div className="cursor-move select-none rounded-full border border-slate-800 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+        <button
+          type="button"
+          draggable
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          className="cursor-move select-none rounded-full border border-slate-800 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
+        >
           Drag
-        </div>
+        </button>
       </div>
     </div>
   );

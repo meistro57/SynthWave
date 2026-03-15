@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { StepSequencer } from "@/app/_components/StepSequencer";
+import { useMachineTargetStore } from "@/store/useMachineTargetStore";
 import { SEQUENCER_NOTES, useSequencerStore } from "@/store/useSequencerStore";
 import { useTransportStore } from "@/store/useTransportStore";
 
@@ -59,6 +60,7 @@ function resetStores() {
     slots: { A: null, B: null, C: null, D: null },
     slotAuto: { A: false, B: false, C: false, D: false },
   });
+  useMachineTargetStore.setState({ target: "subsynth" });
 }
 
 describe("StepSequencer", () => {
@@ -150,9 +152,9 @@ describe("StepSequencer", () => {
 
   it("renders note labels for all rows", () => {
     render(<StepSequencer />);
-    expect(screen.getByText("C5")).toBeInTheDocument();
-    expect(screen.getByText("C4")).toBeInTheDocument();
-    expect(screen.getByText("B2")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^C5/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^C4/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^B2/ })).toBeInTheDocument();
   });
 
   it("renders the grid cells as buttons", () => {

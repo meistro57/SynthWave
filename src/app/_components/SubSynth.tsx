@@ -33,6 +33,59 @@ type PresetForm = {
   name: string;
 };
 
+function buildFactoryPresets(): PresetMap {
+  return {
+    "Deep Bass": {
+      name: "Deep Bass",
+      oscillator: "sawtooth",
+      envelope: { attack: 0.01, decay: 0.2, sustain: 0.5, release: 0.8 },
+      filter: { frequency: 800, resonance: 1.2 },
+    },
+    "Soft Pluck": {
+      name: "Soft Pluck",
+      oscillator: "triangle",
+      envelope: { attack: 0.005, decay: 0.15, sustain: 0.2, release: 0.3 },
+      filter: { frequency: 2200, resonance: 0.7 },
+    },
+    "Bright Lead": {
+      name: "Bright Lead",
+      oscillator: "sawtooth",
+      envelope: { attack: 0.02, decay: 0.1, sustain: 0.7, release: 0.4 },
+      filter: { frequency: 4200, resonance: 0.6 },
+    },
+    "Velvet Pad": {
+      name: "Velvet Pad",
+      oscillator: "sine",
+      envelope: { attack: 0.4, decay: 0.4, sustain: 0.8, release: 1.2 },
+      filter: { frequency: 1800, resonance: 0.4 },
+    },
+    "Square Pulse": {
+      name: "Square Pulse",
+      oscillator: "square",
+      envelope: { attack: 0.01, decay: 0.12, sustain: 0.4, release: 0.25 },
+      filter: { frequency: 2400, resonance: 0.9 },
+    },
+    "Acid Bite": {
+      name: "Acid Bite",
+      oscillator: "sawtooth",
+      envelope: { attack: 0.01, decay: 0.18, sustain: 0.45, release: 0.3 },
+      filter: { frequency: 1600, resonance: 1.4 },
+    },
+    "Soft Organ": {
+      name: "Soft Organ",
+      oscillator: "triangle",
+      envelope: { attack: 0.02, decay: 0.3, sustain: 0.85, release: 0.6 },
+      filter: { frequency: 2600, resonance: 0.5 },
+    },
+    "Short Blip": {
+      name: "Short Blip",
+      oscillator: "sine",
+      envelope: { attack: 0.005, decay: 0.08, sustain: 0.1, release: 0.1 },
+      filter: { frequency: 3000, resonance: 0.3 },
+    },
+  };
+}
+
 function loadPresets(): PresetMap {
   if (typeof window === "undefined") return {};
   const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -46,6 +99,19 @@ function loadPresets(): PresetMap {
 
 function savePresets(presets: PresetMap) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
+}
+
+function loadMergedPresets(): PresetMap {
+  const factory = buildFactoryPresets();
+  const stored = loadPresets();
+  const merged = { ...factory, ...stored };
+  if (
+    typeof window !== "undefined" &&
+    Object.keys(merged).length !== Object.keys(stored).length
+  ) {
+    savePresets(merged);
+  }
+  return merged;
 }
 
 type SubSynthProps = {
@@ -66,14 +132,10 @@ export function SubSynth({ embedded = false }: SubSynthProps) {
     resonance: 0.8,
   });
   const [presetForm, setPresetForm] = useState<PresetForm>({ name: "" });
-  const [presets, setPresets] = useState<PresetMap>({});
+  const [presets, setPresets] = useState<PresetMap>(() => loadMergedPresets());
   const [selectedPreset, setSelectedPreset] = useState<string>("");
   const [pressedKeys, setPressedKeys] = useState<Record<string, boolean>>({});
   const [holdMode, setHoldMode] = useState(false);
-
-  useEffect(() => {
-    setPresets(loadPresets());
-  }, []);
 
   useEffect(() => {
     updateSubSynth({

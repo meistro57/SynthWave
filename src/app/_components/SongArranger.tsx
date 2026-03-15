@@ -19,13 +19,25 @@ const SLOT_COLORS: Record<PatternSlot, string> = {
   D: "bg-violet-500/40 border-violet-300/70",
 };
 
+function loadSongModeFromStorage() {
+  if (typeof window === "undefined") return true;
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (!raw) return true;
+  try {
+    const parsed = JSON.parse(raw) as { songMode?: boolean };
+    return typeof parsed.songMode === "boolean" ? parsed.songMode : true;
+  } catch {
+    return true;
+  }
+}
+
 export function SongArranger() {
   const { blocks, addBlock, removeBlock, moveBlock, setBlockBars, setBlockName, setBlocks } =
     useSongStore();
   const { slots, setSlot, loadPattern } = useSequencerStore();
   const [selectedSlot, setSelectedSlot] = useState<PatternSlot>("A");
   const [bars, setBars] = useState(4);
-  const [songMode, setSongMode] = useState(true);
+  const [songMode, setSongMode] = useState(() => loadSongModeFromStorage());
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const scheduleIdsRef = useRef<number[]>([]);
 
@@ -37,9 +49,6 @@ export function SongArranger() {
       const parsed = JSON.parse(raw) as { blocks?: typeof blocks; songMode?: boolean };
       if (Array.isArray(parsed.blocks)) {
         setBlocks(parsed.blocks);
-      }
-      if (typeof parsed.songMode === "boolean") {
-        setSongMode(parsed.songMode);
       }
     } catch {
       // ignore parse errors

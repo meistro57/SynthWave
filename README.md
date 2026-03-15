@@ -25,13 +25,14 @@ SynthWave is a zero-install, cross-platform music production environment that co
 ### 🎛️ Core Production Tools
 - **14-Machine Rack System** - Virtual analog synths, samplers, drum machines, and more
 - **Professional Mixer** - 14-channel mixing desk with EQ, send effects, and automation
-- **Step Sequencer** - Powerful pattern-based sequencer with velocity and gate controls
+- **Step Sequencer** - Powerful pattern-based sequencer with persisted edit settings and rack-aware targeting
 - **Customizable Dashboard** - Drag, resize, and persist card layouts with export/import
 - **Piano Roll** - Traditional MIDI note editing with advanced tools
 - **Song Arranger** - Slot-based song mode for chaining patterns into full tracks
 
 ### 🎚️ Machines (Instruments)
 - **SubSynth** - Virtual analog subtractive synthesizer
+- **SubSynth Factory Presets** - Deep basses, plucks, pads, acid leads, and starter patches
 - **PCMSynth** - Multi-sample wave synthesizer with SoundFont support
 - **BassLine** - TB-303 style monosynth with slide and accent
 - **BeatBox** - 8-channel sampling drum machine
@@ -49,6 +50,7 @@ SynthWave is a zero-install, cross-platform music production environment that co
 
 ### 🤖 AI-Powered Features
 - **AI Sound Generation** - Create custom sounds from text descriptions
+- **AI Song Ideas** - OpenRouter-backed song concept generation via `/api/ai/song-ideas`
 - **AI Pattern Assistant** - Generate melodies, basslines, and drum patterns
 - **AI Mixing Helper** - Intelligent mixing suggestions and auto-balancing
 - **Style Transfer** - Transform sounds between different styles
@@ -183,6 +185,7 @@ Example body:
 ### Quick Links
 - [Video Tutorials](https://youtube.com/@synthwave) *(Coming Soon)*
 - [FAQ](docs/FAQ.md) *(Coming Soon)*
+- GitHub Actions CI runs `npm run lint` and `npm test -- --runInBand` on pushes and pull requests
 
 ---
 

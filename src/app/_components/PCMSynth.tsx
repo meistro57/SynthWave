@@ -59,9 +59,9 @@ let soundFontModule: SoundFontModule | null = null;
 
 async function loadSoundFontModule() {
   if (soundFontModule) return soundFontModule;
-  const module = await import("soundfont2");
-  soundFontModule = module;
-  return module;
+  const soundfont2Module = await import("soundfont2");
+  soundFontModule = soundfont2Module;
+  return soundfont2Module;
 }
 
 const FACTORY_SAMPLES = [
@@ -236,23 +236,6 @@ function deriveEnvelopeFromGenerators(
   return { attack, decay: hold + decay, sustain, release };
 }
 
-function deriveFilterFromGenerators(
-  sf2: SoundFontModule,
-  generators: Record<number, { value?: number } | undefined>,
-) {
-  const cutoff = clamp(
-    centsToFrequency(getGeneratorValue(sf2, generators, sf2.GeneratorType.InitialFilterFc)),
-    80,
-    18000,
-  );
-  const resonance = clamp(
-    Math.pow(10, getGeneratorValue(sf2, generators, sf2.GeneratorType.InitialFilterQ) / 200),
-    0.1,
-    20,
-  );
-  return { frequency: cutoff, resonance };
-}
-
 function deriveFilterFromGeneratorsWithScaling(
   sf2: SoundFontModule,
   generators: Record<number, { value?: number } | undefined>,
@@ -400,13 +383,6 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
   }, [envelope, filter]);
 
   useEffect(() => {
-    if (!selectedSampleId) return;
-    const sample = samples.find((entry) => entry.id === selectedSampleId);
-    if (!sample) return;
-    setEditor({ start: 0, end: sample.duration });
-  }, [selectedSampleId, samples]);
-
-  useEffect(() => {
     return () => {
       previewPlayerRef.current?.dispose();
       previewPlayerRef.current = null;
@@ -414,6 +390,13 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
   }, []);
 
   const selectedSample = samples.find((entry) => entry.id === selectedSampleId) ?? null;
+  const selectSample = (sampleId: string | null) => {
+    setSelectedSampleId(sampleId);
+    if (!sampleId) return;
+    const sample = samples.find((entry) => entry.id === sampleId);
+    if (!sample) return;
+    setEditor({ start: 0, end: sample.duration });
+  };
 
   const notes = useMemo(() => DEFAULT_NOTES, []);
 
@@ -443,6 +426,7 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
       loopEnd,
     };
     setSamples((prev) => [...prev, entry]);
+    setEditor({ start: 0, end: entry.duration });
     setSelectedSampleId(entry.id);
     setStatus(`Loaded ${name}`);
   };
@@ -681,7 +665,11 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
       }
 
       setSamples(nextSamples);
-      setSelectedSampleId(nextSamples[0]?.id ?? null);
+      const firstSampleId = nextSamples[0]?.id ?? null;
+      if (firstSampleId) {
+        setEditor({ start: 0, end: nextSamples[0].duration });
+      }
+      setSelectedSampleId(firstSampleId);
       setStatus(`Loaded ${nextSamples.length} samples from ${selectedPreset.name}.`);
     } catch (error) {
       setStatus(`Failed to load preset ${selectedPreset.name}.`);
@@ -779,7 +767,7 @@ export function PCMSynth({ embedded = false }: PCMSynthProps) {
                     <button
                       key={sample.id}
                       type="button"
-                      onClick={() => setSelectedSampleId(sample.id)}
+                      onClick={() => selectSample(sample.id)}
                       className={
                         "flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-sm transition " +
                         (sample.id === selectedSampleId

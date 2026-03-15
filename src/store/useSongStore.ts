@@ -47,7 +47,7 @@ function createId() {
   return `block-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export const useSongStore = create<SongState>((set, get) => ({
+export const useSongStore = create<SongState>((set) => ({
   blocks: DEFAULT_BLOCKS,
   addBlock: (slot, bars = 4) =>
     set((state) => ({

@@ -38,7 +38,7 @@ export type RackState = {
   renameMachine: (id: string, name: string) => void;
 };
 
-export const useRackStore = create<RackState>((set, get) => ({
+export const useRackStore = create<RackState>((set) => ({
   machines: [createMachineState("subsynth")],
   addMachine: (type) =>
     set((state) => {

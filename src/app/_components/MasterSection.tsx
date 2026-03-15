@@ -96,7 +96,7 @@ export function MasterSection() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [barCount, peakDecay, peakHold, peakRef]);
 
   const spectrumBars = useMemo(() => {
     return spectrum.map((value, index) => {

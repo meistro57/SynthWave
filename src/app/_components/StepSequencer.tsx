@@ -9,6 +9,7 @@ import { triggerBeatBox } from "@/audio/instruments/beatBox";
 import { triggerFMSynth } from "@/audio/instruments/fmSynth";
 import { triggerPCMSynth } from "@/audio/instruments/pcmSynth";
 import { setSubSynthPan, triggerSubSynth } from "@/audio/instruments/subSynth";
+import { useRackStore } from "@/store/useRackStore";
 import { useMachineTargetStore } from "@/store/useMachineTargetStore";
 import {
   PatternSlot,
@@ -52,6 +53,11 @@ type SequencerSettings = {
   octaveShift: number;
 };
 
+type LocalSequencerSettings = Pick<
+  SequencerSettings,
+  "editMode" | "randomizeDensity" | "randomizeSeed" | "octaveShift"
+>;
+
 function loadPatterns(): PatternMap {
   if (typeof window === "undefined") return {};
   const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -60,6 +66,42 @@ function loadPatterns(): PatternMap {
     return JSON.parse(raw) as PatternMap;
   } catch {
     return {};
+  }
+}
+
+function loadLocalSequencerSettings(): LocalSequencerSettings {
+  if (typeof window === "undefined") {
+    return {
+      editMode: "velocity",
+      randomizeDensity: 25,
+      randomizeSeed: null,
+      octaveShift: 0,
+    };
+  }
+  const raw = window.localStorage.getItem(SETTINGS_KEY);
+  if (!raw) {
+    return {
+      editMode: "velocity",
+      randomizeDensity: 25,
+      randomizeSeed: null,
+      octaveShift: 0,
+    };
+  }
+  try {
+    const parsed = JSON.parse(raw) as Partial<SequencerSettings>;
+    return {
+      editMode: parsed.editMode ?? "velocity",
+      randomizeDensity: typeof parsed.randomizeDensity === "number" ? parsed.randomizeDensity : 25,
+      randomizeSeed: typeof parsed.randomizeSeed === "number" ? parsed.randomizeSeed : null,
+      octaveShift: typeof parsed.octaveShift === "number" ? parsed.octaveShift : 0,
+    };
+  } catch {
+    return {
+      editMode: "velocity",
+      randomizeDensity: 25,
+      randomizeSeed: null,
+      octaveShift: 0,
+    };
   }
 }
 
@@ -92,6 +134,7 @@ const SLOT_LABELS: PatternSlot[] = ["A", "B", "C", "D"];
 const BEATBOX_LABELS = ["Kick", "Snare", "Clap", "Hat", "Open Hat", "Tom", "Rim", "Perc"] as const;
 
 export function StepSequencer() {
+  const localSettings = useMemo(() => loadLocalSequencerSettings(), []);
   const { bpm, isPlaying, humanizeMs } = useTransportStore();
   const { target } = useMachineTargetStore();
   const {
@@ -142,7 +185,7 @@ export function StepSequencer() {
   } = useSequencerStore();
   const [currentStep, setCurrentStep] = useState(0);
   const [isAccentMode, setIsAccentMode] = useState(false);
-  const [patterns, setPatterns] = useState<PatternMap>({});
+  const [patterns, setPatterns] = useState<PatternMap>(() => loadPatterns());
   const [presetForm, setPresetForm] = useState<PresetForm>({ name: "" });
   const [tagInput, setTagInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -150,11 +193,36 @@ export function StepSequencer() {
   const [renameValue, setRenameValue] = useState<string>("");
   const [copiedPattern, setCopiedPattern] = useState<SequencerPattern | null>(null);
   const [dragState, setDragState] = useState<DragState | null>(null);
-  const [editMode, setEditMode] = useState<EditMode>("velocity");
-  const [randomizeDensity, setRandomizeDensity] = useState(25);
-  const [randomizeSeed, setRandomizeSeed] = useState<number | null>(null);
-  const [octaveShift, setOctaveShift] = useState(0);
+  const [editMode, setEditMode] = useState<EditMode>(localSettings.editMode);
+  const [randomizeDensity, setRandomizeDensity] = useState(localSettings.randomizeDensity);
+  const [randomizeSeed, setRandomizeSeed] = useState<number | null>(localSettings.randomizeSeed);
+  const [octaveShift, setOctaveShift] = useState(localSettings.octaveShift);
   const [importText, setImportText] = useState("");
+
+  const machines = useRackStore((state) => state.machines);
+
+  const availableTargets = useMemo(() => {
+    const seen = new Set<string>();
+    const ordered: Array<{ type: "subsynth" | "pcmsynth" | "beatbox" | "fmsynth" | "bassline"; label: string }> = [];
+    machines.forEach((machine) => {
+      if (seen.has(machine.type)) return;
+      seen.add(machine.type);
+      ordered.push({
+        type: machine.type,
+        label: machine.name,
+      });
+    });
+    if (ordered.length === 0) {
+      return [
+        { type: "subsynth", label: "SubSynth" },
+        { type: "pcmsynth", label: "PCMSynth" },
+        { type: "beatbox", label: "BeatBox" },
+        { type: "fmsynth", label: "FMSynth" },
+        { type: "bassline", label: "BassLine" },
+      ];
+    }
+    return ordered;
+  }, [machines]);
 
   const gridRef = useRef(grid);
   const probabilityRef = useRef(probability);
@@ -178,10 +246,6 @@ export function StepSequencer() {
   const slotAutoRef = useRef(slotAuto);
   const scheduleIdRef = useRef<number | null>(null);
   const stepIndexRef = useRef(0);
-
-  useEffect(() => {
-    setPatterns(loadPatterns());
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -214,12 +278,8 @@ export function StepSequencer() {
       if (parsed.rowDelaySends) setRowDelaySends(parsed.rowDelaySends);
       if (parsed.rowReverbSends) setRowReverbSends(parsed.rowReverbSends);
       if (parsed.rowTargets) setRowTargets(parsed.rowTargets);
-      if (parsed.editMode) setEditMode(parsed.editMode);
       if (parsed.slotAuto) setSlotAuto(parsed.slotAuto);
-      if (typeof parsed.randomizeDensity === "number") setRandomizeDensity(parsed.randomizeDensity);
-      if (typeof parsed.randomizeSeed === "number") setRandomizeSeed(parsed.randomizeSeed);
       if (typeof parsed.steps === "number") setSteps(parsed.steps);
-      if (typeof parsed.octaveShift === "number") setOctaveShift(parsed.octaveShift);
     } catch {
       // ignore settings parse errors
     }
@@ -330,6 +390,14 @@ export function StepSequencer() {
   }, [target, rowTargets, setRowTargets]);
 
   useEffect(() => {
+    if (availableTargets.length === 0) return;
+    const isValid = availableTargets.some((option) => option.type === target);
+    if (!isValid) {
+      useMachineTargetStore.getState().setTarget(availableTargets[0].type);
+    }
+  }, [availableTargets, target]);
+
+  useEffect(() => {
     resolutionRef.current = resolution;
   }, [resolution]);
 
@@ -361,7 +429,6 @@ export function StepSequencer() {
         scheduleIdRef.current = null;
       }
       stepIndexRef.current = 0;
-      setCurrentStep(0);
       return;
     }
 
@@ -461,7 +528,7 @@ export function StepSequencer() {
         scheduleIdRef.current = null;
       }
     };
-  }, [isPlaying, target]);
+  }, [isPlaying, target, loadPattern, octaveShift, setSlot]);
 
   useEffect(() => {
     Tone.Transport.bpm.value = bpm;
@@ -477,12 +544,6 @@ export function StepSequencer() {
     window.addEventListener("pointerup", handlePointerUp);
     return () => window.removeEventListener("pointerup", handlePointerUp);
   }, [dragState]);
-
-  useEffect(() => {
-    if (selectedPattern && patterns[selectedPattern]) {
-      setRenameValue(selectedPattern);
-    }
-  }, [selectedPattern, patterns]);
 
   const tempoLabel = useMemo(() => `${bpm} BPM · ${resolution}`, [bpm, resolution]);
 
@@ -508,6 +569,7 @@ export function StepSequencer() {
       return next;
     });
     setSelectedPattern(pattern.name);
+    setRenameValue(pattern.name);
   };
 
   const handleLoadPattern = (name: string) => {
@@ -515,6 +577,7 @@ export function StepSequencer() {
     if (!pattern) return;
     loadPattern(pattern);
     setSelectedPattern(name);
+    setRenameValue(name);
     setTagInput(pattern.tags?.join(", ") ?? "");
   };
 
@@ -531,6 +594,7 @@ export function StepSequencer() {
       return next;
     });
     setSelectedPattern(newName);
+    setRenameValue(newName);
   };
 
   const handleDeletePattern = () => {
@@ -828,11 +892,11 @@ export function StepSequencer() {
               }
               className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-xs font-semibold text-slate-200"
             >
-              <option value="subsynth">SubSynth</option>
-              <option value="pcmsynth">PCMSynth</option>
-              <option value="beatbox">BeatBox</option>
-              <option value="fmsynth">FMSynth</option>
-              <option value="bassline">BassLine</option>
+              {availableTargets.map((option) => (
+                <option key={option.type} value={option.type}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>

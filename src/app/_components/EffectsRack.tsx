@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { getMasterEffects } from "@/audio/audioEngine";
 import { getMachineEffectChain } from "@/audio/effects/machineEffects";
@@ -25,36 +25,33 @@ function createDefaultSlots(slotCount: number): EffectSlotState[] {
   return Array.from({ length: slotCount }, () => ({ type: null, bypass: true, params: {} }));
 }
 
+function loadSlotsForTarget(target: (typeof TARGETS)[number]["id"]) {
+  const chain = target === "master" ? getMasterEffects() : getMachineEffectChain(target);
+  const defaultSlots = createDefaultSlots(chain.slots.length);
+  if (typeof window === "undefined") return defaultSlots;
+  const raw = window.localStorage.getItem(storageKey(target));
+  if (!raw) return defaultSlots;
+  try {
+    const parsed = JSON.parse(raw) as EffectSlotState[];
+    if (parsed.length !== chain.slots.length) return defaultSlots;
+    parsed.forEach((slot, index) => {
+      chain.setSlotEffect(index, slot.type);
+      chain.setSlotBypass(index, slot.bypass);
+      if (slot.type) {
+        chain.updateSlotParams(index, slot.params);
+      }
+    });
+    return parsed;
+  } catch {
+    return defaultSlots;
+  }
+}
+
 export function EffectsRack() {
   const [target, setTarget] = useState<(typeof TARGETS)[number]["id"]>("master");
-  const [slots, setSlots] = useState<EffectSlotState[]>(() => createDefaultSlots(2));
+  const [slots, setSlots] = useState<EffectSlotState[]>(() => loadSlotsForTarget("master"));
 
   const effectDefs = useMemo(() => listEffectDefinitions(), []);
-
-  useEffect(() => {
-    const chain = target === "master" ? getMasterEffects() : getMachineEffectChain(target);
-    const defaultSlots = createDefaultSlots(chain.slots.length);
-    setSlots(defaultSlots);
-
-    if (typeof window === "undefined") return;
-    const raw = window.localStorage.getItem(storageKey(target));
-    if (!raw) return;
-    try {
-      const parsed = JSON.parse(raw) as EffectSlotState[];
-      if (parsed.length === chain.slots.length) {
-        setSlots(parsed);
-        parsed.forEach((slot, index) => {
-          chain.setSlotEffect(index, slot.type);
-          chain.setSlotBypass(index, slot.bypass);
-          if (slot.type) {
-            chain.updateSlotParams(index, slot.params);
-          }
-        });
-      }
-    } catch {
-      // ignore
-    }
-  }, [target]);
 
   const handleSlotType = (index: number, type: EffectType | null) => {
     const chain = target === "master" ? getMasterEffects() : getMachineEffectChain(target);
@@ -119,7 +116,11 @@ export function EffectsRack() {
           </div>
           <select
             value={target}
-            onChange={(event) => setTarget(event.target.value as typeof target)}
+            onChange={(event) => {
+              const nextTarget = event.target.value as typeof target;
+              setTarget(nextTarget);
+              setSlots(loadSlotsForTarget(nextTarget));
+            }}
             className="rounded-full border border-slate-700 bg-slate-950 px-4 py-2 text-xs font-semibold text-slate-200"
           >
             {TARGETS.map((entry) => (
