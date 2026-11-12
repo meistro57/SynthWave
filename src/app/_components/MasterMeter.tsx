@@ -46,17 +46,18 @@ export function MasterMeter() {
     return spectrum.map((value, index) => {
       const height = Math.max(2, Math.min(80, (value + 100) * 1.1));
       if (colorMode === "gradient") {
-        const hue = 190 + (index / Math.max(1, spectrum.length - 1)) * 110;
-        return { height, color: `hsl(${hue}, 85%, 60%)` };
+        // honey → ember → rose → violet across the spectrum
+        const hue = (38 - (index / Math.max(1, spectrum.length - 1)) * 128 + 360) % 360;
+        return { height, color: `hsl(${hue}, 78%, 62%)` };
       }
       const third = spectrum.length / 3;
       const band = index < third ? "low" : index < third * 2 ? "mid" : "high";
       const color =
         band === "low"
-          ? "rgba(34, 211, 238, 0.85)"
+          ? "rgba(242, 169, 59, 0.85)"
           : band === "mid"
-            ? "rgba(251, 191, 36, 0.85)"
-            : "rgba(167, 139, 250, 0.85)";
+            ? "rgba(155, 123, 234, 0.85)"
+            : "rgba(245, 158, 139, 0.85)";
       return { height, color };
     });
   }, [spectrum, colorMode]);
@@ -134,7 +135,7 @@ export function MasterMeter() {
                 <polyline
                   points={spectrumLine}
                   fill="none"
-                  stroke="rgba(56, 189, 248, 0.9)"
+                  stroke="rgba(255, 210, 122, 0.9)"
                   strokeWidth="1.5"
                 />
               </svg>

@@ -1167,7 +1167,7 @@ export function StepSequencer() {
                               : " bg-cyan-500/70"
                             : " bg-slate-950") +
                           (currentStep === colIndex && isPlaying
-                            ? " border-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.6)]"
+                            ? " border-cyan-300 shadow-[0_0_10px_rgba(242,169,59,0.65)]"
                             : "")
                         }
                         aria-pressed={isActive}
