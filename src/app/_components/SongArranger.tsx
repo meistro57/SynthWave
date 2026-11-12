@@ -195,7 +195,7 @@ export function SongArranger() {
             style={{
               minWidth: Math.max(480, totalBars * BAR_WIDTH),
               backgroundImage:
-                "linear-gradient(to right, rgba(148,163,184,0.15) 1px, transparent 1px)",
+                "linear-gradient(to right, rgba(242,169,59,0.12) 1px, transparent 1px)",
               backgroundSize: `${BAR_WIDTH}px 100%`,
             }}
           >

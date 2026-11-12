@@ -262,7 +262,16 @@ export function DashboardLayout() {
     <div className="mx-auto flex w-full max-w-none flex-col gap-10 px-6 py-16">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-4">
-          <p className="text-xs uppercase tracking-[0.4em] text-slate-500">SynthWave</p>
+          <p className="flex items-center gap-3 font-mono text-xs uppercase tracking-[0.3em] text-violet-300">
+            <svg width="26" height="26" viewBox="0 0 36 36" aria-hidden="true" className="drop-shadow-[0_0_8px_rgba(242,169,59,0.55)]">
+              <polygon points="18,2 32,10 32,26 18,34 4,26 4,10" fill="none" stroke="#f2a93b" strokeWidth="2" />
+              <polygon points="18,10 25,14 25,22 18,26 11,22 11,14" fill="#f2a93b" />
+              <circle cx="18" cy="18" r="2.6" fill="#9b7bea" />
+            </svg>
+            <span>
+              <span className="text-cyan-400">SynthWave</span> · Quantum Minds United
+            </span>
+          </p>
           <h1 className="text-4xl font-semibold tracking-tight text-slate-100 md:text-5xl">
             Modular DAW foundation build
           </h1>

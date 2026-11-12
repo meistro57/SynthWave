@@ -114,21 +114,21 @@ export default function AdminPage() {
 
   const statusBar =
     status.type === "loading" ? (
-      <span style={{ color: "#94a3b8" }}>Loading…</span>
+      <span style={{ color: "#c9b595" }}>Loading…</span>
     ) : status.type === "saving" ? (
-      <span style={{ color: "#94a3b8" }}>Saving…</span>
+      <span style={{ color: "#c9b595" }}>Saving…</span>
     ) : status.type === "success" ? (
-      <span style={{ color: "#22d3ee" }}>{status.message}</span>
+      <span style={{ color: "#7dd3c0" }}>{status.message}</span>
     ) : status.type === "error" ? (
-      <span style={{ color: "#f87171" }}>{status.message}</span>
+      <span style={{ color: "#f07a62" }}>{status.message}</span>
     ) : null;
 
   return (
     <div
       style={{
         minHeight: "100vh",
-        background: "#0f172a",
-        color: "#e2e8f0",
+        background: "#120c07",
+        color: "#f6e9d2",
         fontFamily: "monospace",
         padding: "2rem 1rem",
       }}
@@ -143,16 +143,16 @@ export default function AdminPage() {
             marginBottom: "2rem",
           }}
         >
-          <h1 style={{ margin: 0, fontSize: "1.5rem", color: "#38bdf8" }}>
+          <h1 style={{ margin: 0, fontSize: "1.5rem", color: "#f2a93b" }}>
             Admin Settings
           </h1>
           <Link
             href="/"
             style={{
-              color: "#94a3b8",
+              color: "#c9b595",
               textDecoration: "none",
               fontSize: "0.875rem",
-              border: "1px solid #334155",
+              border: "1px solid #4f3d29",
               borderRadius: 6,
               padding: "0.3rem 0.75rem",
             }}
@@ -165,13 +165,13 @@ export default function AdminPage() {
         {loaded && !loaded.hasApiKey && (
           <div
             style={{
-              background: "#7c2d12",
-              border: "1px solid #ea580c",
+              background: "#3d2407",
+              border: "1px solid #f2a93b",
               borderRadius: 8,
               padding: "0.75rem 1rem",
               marginBottom: "1.5rem",
               fontSize: "0.875rem",
-              color: "#fed7aa",
+              color: "#ffe2a3",
             }}
           >
             No API key configured. Enter your OpenRouter API key below to enable
@@ -182,20 +182,20 @@ export default function AdminPage() {
         {/* Card */}
         <div
           style={{
-            background: "#1e293b",
-            border: "1px solid #334155",
+            background: "#1f160d",
+            border: "1px solid #4f3d29",
             borderRadius: 12,
             padding: "1.5rem",
           }}
         >
-          <h2 style={{ margin: "0 0 1.25rem", fontSize: "1rem", color: "#cbd5e1" }}>
+          <h2 style={{ margin: "0 0 1.25rem", fontSize: "1rem", color: "#e6d6ba" }}>
             OpenRouter
           </h2>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {/* API Key */}
             <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>API Key</span>
+              <span style={{ fontSize: "0.8rem", color: "#c9b595" }}>API Key</span>
               <input
                 type="password"
                 value={apiKey}
@@ -210,7 +210,7 @@ export default function AdminPage() {
 
             {/* Model */}
             <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>Model</span>
+              <span style={{ fontSize: "0.8rem", color: "#c9b595" }}>Model</span>
               <select
                 value={isCustomModel ? "__custom__" : model}
                 onChange={(e) => handleModelChange(e.target.value)}
@@ -227,7 +227,7 @@ export default function AdminPage() {
 
             {isCustomModel && (
               <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
+                <span style={{ fontSize: "0.8rem", color: "#c9b595" }}>
                   Custom model ID
                 </span>
                 <input
@@ -242,7 +242,7 @@ export default function AdminPage() {
 
             {/* Referer */}
             <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
+              <span style={{ fontSize: "0.8rem", color: "#c9b595" }}>
                 HTTP-Referer
               </span>
               <input
@@ -256,7 +256,7 @@ export default function AdminPage() {
 
             {/* Title */}
             <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
+              <span style={{ fontSize: "0.8rem", color: "#c9b595" }}>
                 X-Title
               </span>
               <input
@@ -284,8 +284,8 @@ export default function AdminPage() {
               onClick={handleSave}
               disabled={!isDirty() || status.type === "saving" || status.type === "loading"}
               style={{
-                background: isDirty() ? "#0284c7" : "#1e3a4a",
-                color: isDirty() ? "#fff" : "#64748b",
+                background: isDirty() ? "#f2a93b" : "#2f2317",
+                color: isDirty() ? "#1a1008" : "#7d6649",
                 border: "none",
                 borderRadius: 8,
                 padding: "0.5rem 1.25rem",
@@ -304,7 +304,7 @@ export default function AdminPage() {
           style={{
             marginTop: "1.5rem",
             fontSize: "0.75rem",
-            color: "#475569",
+            color: "#7d6649",
             textAlign: "center",
           }}
         >
@@ -317,10 +317,10 @@ export default function AdminPage() {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: "#0f172a",
-  border: "1px solid #334155",
+  background: "#120c07",
+  border: "1px solid #4f3d29",
   borderRadius: 6,
-  color: "#e2e8f0",
+  color: "#f6e9d2",
   padding: "0.45rem 0.75rem",
   fontSize: "0.875rem",
   fontFamily: "monospace",

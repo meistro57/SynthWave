@@ -193,14 +193,14 @@ function MixerChannelStrip({
           style={{
             width: `${Math.round(level * 100)}%`,
             backgroundColor: channel.color === "cyan"
-              ? "#22d3ee"
+              ? "#f2a93b"
               : channel.color === "emerald"
-                ? "#34d399"
+                ? "#7dd3c0"
                 : channel.color === "amber"
-                  ? "#fbbf24"
+                  ? "#f4b53f"
                   : channel.color === "violet"
-                    ? "#a78bfa"
-                    : "#fb7185",
+                    ? "#9b7bea"
+                    : "#f59e8b",
           }}
         />
       </div>
